@@ -12,6 +12,14 @@
 #define MAXLINE     8192
 #define SHORTLINE   512
 
+// what's these?
+#define vee_str3_cmp(m, c0, c1, c2, c3) \
+    *(uint32_t *) m == ((c3 << 24) | (c2 << 16) | (c1 << 8) | c0)
+#define vee_str30cmp(m, c0, c1, c2, c3) \
+    *(uint32_t *) m == ((c3 << 24) | (c2 << 16) | (c1 << 8) | c0)
+#define vee_str4cmp(m, c0, c1, c2, c3) \
+    *(uint32_t *) m == ((c3 << 24) | (c2 << 16) | (c1 << 8) | c0)
+
 typedef struct mime_type_s {
     const char *type;
     const char *value;
