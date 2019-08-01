@@ -197,3 +197,93 @@ static void parse_uri(char *uri, int uri_length, char *filename, char *querystri
 
     return;
 }
+
+static void do_error(int fd, char *cause, char *errnum, char *shortmsg, char *longmsg) {
+    char header[MAXLINE], body[MAXLINE];
+
+    sprintf(body, "<html><title>Vee Error</title>");
+    sprintf(body, "%s<body bgcolor=""ffffff"">\n", body);
+    sprintf(body, "%s%s: %s\n", body, errnum, shortmsg);
+    sprintf(body, "%s<p>%s: %s\n</p>", body, longmsg, cause);
+    sprintf(body, "%s<hr><em>Vee web server</em>\n</body></html>", body);
+
+    sprintf(header, "HTTP/1.1 %s %s\r\n", errnum, shortmsg);
+    sprintf(header, "%sServer: Vee\r\n", header);
+    sprintf(header, "%sContent-type: text/html\r\n", header);
+    sprintf(header, "%sConnection: close\r\n", header);
+    sprintf(header, "%sContent-length: %d\r\n\r\n", header, (int)strlen(body));
+
+    rio_writen(fd, header, strlen(header));
+    rio_writen(fd, body, strlen(body));
+
+    return;
+}
+
+static void serve_static(int fd, char *filename, size_t filesize, vee_http_out_t *out) {
+    char header[MAXLINE];
+    char buf[SHORTLINE];
+    size_t n;
+    struct tm tm;
+
+    const char *file_type;
+    const char *dot_pos = strrchr(filename, '.');
+    file_type = get_file_type(dot_pos);
+
+    sprintf(header, "HTTP/1.1 %d %s\r\n", out->status, get_shortmsg_from_status_code(out->status));
+
+    if (out->keep_alive) {
+        sprintf(header, "%sConnection: keep-alive\r\n", header);
+        sprintf(header, "%sKeep-Alive: timeout=%d\r\n", header, TIMEOUT_DEFAULT);
+    }
+
+    if (out->modified) {
+        sprintf(header, "%sContent-type: %s\r\n", header, file_type);
+        sprintf(header, "%sContent-length: %zu\r\n", header, filesize);
+        localtime_r(&(out->mtime), &tm);
+        strftime(buf, SHORTLINE, "%a, %d %b %Y %H:%M:%S GMT", &tm);
+        sprintf(header, "%sLast-Modified: %s\r\n", header, buf);
+    }
+
+    sprintf(header, "%sServer: Vee\r\n", header);
+    sprintf(header, "%s\r\n", header);
+
+    n = (size_t)rio_writen(fd, header, strlen(header));
+    check(n == strlen(header), "rio_writen error, errno = %d", errno);
+    if (n != strlen(header)) {
+        log_err("n != strlen(header)");
+        goto out;
+    }
+
+    if (!out->modified) {
+        goto out;
+    }
+
+    int srcfd = open(filename, O_RDONLY, 0);
+    check(srcfd > 2, "open error");
+
+    // what's mmap and munmap meaning?
+    char *srcaddr = mmap(NULL, filesize, PROT_READ, MAP_PRIVATE, srcfd, 0);
+    check(srcaddr != (void *) -1, "mmap error");
+    close(srcfd);
+
+    n = rio_writen(fd, srcaddr, filesize);
+
+    munmap(srcaddr, filesize);
+
+out:
+    return;
+}
+
+static const char *get_file_type(const char *type) {
+    if (type == NULL) {
+        return "text/plain";
+    }
+
+    int i;
+    for (i = 0; vee_mime[i].type != NULL; ++i) {
+        if (strcmp(type, vee_mime[i].type) == 0)
+            return vee_mime[i].value;
+    }
+
+    return vee_mime[i].value;
+}
