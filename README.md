@@ -11,11 +11,12 @@
 1.2.4 set_nonblock
 1.3 accept-clt_sock
 1.3.1 accept
-1.3.2 set_nonblock
+1.3.2 set_nonblock # put in io or socket?
 1.4 implement of set_nonblock
 1.4.1 fcntl
 
 2 epoll
+what's the difference between level-triggered and edge-triggered?
 2.1 create
 2.2 ctl
 *edge trigger*
@@ -76,3 +77,8 @@
 9.2.1 log_err
 9.2.2 log_info
 9.3 debug
+
+
+10. other 
+10.1 why use #ifndef XXX_H ... in the forefront of header files?
+10.2 what's close-on-exec? tlpi p1356
