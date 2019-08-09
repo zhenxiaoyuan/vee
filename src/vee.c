@@ -55,6 +55,7 @@ int main(int argc, char **argv) {
     // add listenfd to epoll
     ev.events = EPOLLIN | EPOLLET;    // if listenfd need EPOLLET and EPOLLONESHOT ?
     ev.data.ptr = (void *)request;  // what's the structure of ev.data ?
+    // set ev.data.fd in vee_init_request_t()
     // what's the diff between ev.data.fd and ev.data.ptr->fd
 
     vee_epoll_add(epfd, svr_sock, &ev);
@@ -100,7 +101,7 @@ int main(int argc, char **argv) {
                 vee_epoll_add(epfd, clt_sock, &ev);
                 vee_add_timer()
             } else {
-                // exclude error event
+                // exclude error event, !EPOLLIN is ok, why use ERR and HUP?
                 if ((ev_list[i].events & EPOLLERR) ||
                     (ev_list[i].events & EPOLLHUP) ||
                     (!(ev_list[i].events & EPOLLIN))) {
