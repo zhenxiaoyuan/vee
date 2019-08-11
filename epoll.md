@@ -1,61 +1,134 @@
+## epoll - event poll
+**event** will notificate when the registered file descriptor monitored.
 
-2 epoll - event poll
+### 1. Header file
+```
+    #include <sys/epoll.h>
+```
+
+### 2. Functions
+
+#### create -> epoll instance
+
+```
+    int epoll_create(int size);
+    int epoll_create1();            // starting with kernel 2.6.27
+            // return epfd on success, or -1 on error.
+```
+
+epfd - epoll file descriptor, refer to the new **epoll instance**
+
+#### ctl -> interest list
+ 
+```
+    int epoll_ctl(int epfd, int op, int fd, struct epoll_event *ev);
+            // return 0 on success, or -1 on error.
+```
+
+Operation|Error|File descriptor in the interest list?
+---|:---|---:
+EPOLL_CTL_ADD|EEXIST|yes
+EPOLL_CTL_MOD|ENOENT|no
+EPOLL_CTL_DEL|ENOENT|no
+
+#### wait -> ready list
+
+```
+    int epoll_wait(int epfd, struct epoll_event *evlist, int maxevents, int timeout);
+            // return number of ready fd, 0 on timeout, -1 on error.
+```
+
+Timeout | Description
+---     | ---
+-1      | block until occur
+0       | nonblock check
+>0      | block for up to timeout
+
+### 3. Structure - epoll_event
+
+```
+struct epoll_event {
+    uint32_t events;    /* epoll events (bit mask) */ 
+    epoll_data_t data;  /* User data */
+};
+
+typedef union epoll_data {
+    void        *ptr;   /* Pointer to user-defined data */
+    int          fd;    /* File descriptor */
+    uint32_t     u32;   /* 32-bit integer */
+    uint64_t     u64;   /* 64-bit integer */
+} epoll_data_t;
+```
+
+Bit|Input to epoll_ctl()?|Returned by epoll_wait()?|Description
+---|:---:|:---:|:---
+EPOLLIN     | • | • |Data other than high-priority data can be read
+EPOLLPRI    | • | • |High-priority data can be read
+EPOLLRDHUP  | • | • |Shutdown on peer socket (since Linux 2.6.17)
+EPOLLOUT    | • | • |Normal data can be written
+EPOLLET     | • |   |Employ edge-triggered event notification
+EPOLLONESHOT| • |   |Disable monitoring after event notification
+EPOLLERR    |   | • |An error has occurred
+EPOLLHUP    |   | • |A hangup has occurred
 
 
-#include <sys/epoll.h>
 
-2.1 create
-int epoll_create(int size);
-int epoll_create1();
-return fd on success, -1 on error.
-create1
-2.2 ctl
-int epoll_ctl(int epfd, int op, int fd, struct epoll_event *ev);
-return 0 on success, -1 on error.
-*edge trigger*
-*oneshot*
-2.2.1 add
-int epoll_ctl(int epfd, EPOLL_CTL_ADD, int fd, struct epoll_event *ev);
-return EEXIST on error.
-2.2.2 mod
-int epoll_ctl(int epfd, EPOLL_CTL_MOD, int fd, struct epoll_event *ev);
-return ENOENT on error.
-2.2.3 del
-int epoll_ctl(int epfd, EPOLL_CTL_DEL, int fd, NULL-ignore);
-return ENOENT on error.
+### 4. Edge-Triggered Notification and starvation
+
+### 5. epoll Semantics
+
+
+------
+
+TODO: Deep in kernel, how to connected epoll instance, interest list and ready list?
+
+
+
 close(fd) -> remove from all epoll interest lists.
-2.3 wait
-int epoll_wait(int epfd, struct epoll_event *evlist, int maxevents, int timeout);
-return number of ready fd, 0 on timeout, -1 on error.
-timeout
--1 = block until occur
-0 = nonblock check
->0 block for up to timeout
-2.4 close and release sources (don't necessary in this program , see q 3)
+### 6. Q&A
 
-1 - what's the difference of fd between interest list and epoll_data_t.fd? - same
-in this program, epoll_data_t.fd get the value in request_http_init.
-2 - why EPOLLONESHOT? - active just once
-ure epoll__mod to reactive in the interest list.
+Q1: epoll_ctl 函数中的第二个参数 fd 与 epoll_event.epoll_data_t.fd 有什么区别？
+
+A1: 一样的，对应同一个 fd，只是用的位置不同。
+
+   - epoll_ctl 将 fd 注册到 interest list 中
+   - epoll 对这个 fd 进行监听
+   - fd 被触发，进入ready list
+   - epoll_wait 将 ready list 中的事件存储在 epoll_event 数组中并返回
+   - epoll_event.epoll_data_t.fd 进行 IO 操作（也可以将 epoll_event.epoll_data_t.fd 存储在 epoll_data_t.ptr 指向的结构体中）
+
+
+
+Q2: 为什么使用 EPOLLONESHOT?
+
+A2: 每次请求处理完后，使用 ctl_mod, 刷新 epoll 对这个 fd 的监听，同时新增timer。这样可以继续保持连接，如果在timeout之前有新的请求进来，可以立刻处理。
+
+
 3 - why don't use epoll_del in this program?
 close(fd) -> remove from all epoll interest lists. -
 what will happen if dup() or fork() fd for one open fd? - open fd will removed only after all fd closed.
-just close the fd when request end.
-attention: can't use epoll_add to reactive because it's already in the interest list
+just close the fd when request end and timeout.
+
 4 - how about multithread?
 epoll_ctl and epoll_wait can used in multithread program.
+In a multithreaded program, it is possible for one thread to use epoll_ctl() to add file descriptors to the interest list of an epoll instance that is already being monitored by epoll_wait() in another thread. These changes to the interest list will be taken into account immediately, and the epoll_wait() call will return readiness information about the newly added file descriptors.
+
 5 - see the page 95
 fd - open fd - i-node
+
 6 - list in the kernel space, but how to relate list and epoll_event?
+TODO: Deep in kernel, how to connected epoll instance, interest list and ready list?
+
 7 - what's the difference between level-triggered and edge-triggered?
 trigger every time - trigger once
                      read all once
-nonblock is for read / write, prevent io time too long
 read /write once   - while { read / write } at once
 read /write, 0 on EOF and close request, -1 on errno, > 0 on length
+
 8 - what's the advantage of edge triggered?
 divide data recv and process using EAGAIN and EBLOCK...
 less epoll_event in interest_list
+
 9 - starving in edge triggered?
 use timer to prevent starvation
 think: find_timer or -1 for timeout in epoll_wait
