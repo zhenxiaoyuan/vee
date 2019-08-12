@@ -1,31 +1,42 @@
-//#ifndef EPOLL_H
-//#define EPOLL_H
-//
-//#include <sys/epoll.h>
-//
-//#define MAXEVENTS 1024
-//
-//int vee_epoll_create(int flags);
-//void vee_epoll_add(int epfd, int fs, struct epoll_event *event);
-//void vee_epoll_mod(int epfd, int fs, struct epoll_event *event);
-//void vee_epoll_del(int epfd, int fs, struct epoll_event *event);
-//int vee_epoll_wait(int epfd, struct epoll_event *events, int maxevents, int timeout);
-//
-//#endif
-//
-//
+/*
+ *      Author:     Hao Zhen
+ *      E-Mail:     i_zhenhao@163.com
+ */
 #ifndef VEE_EPOLL_H
 #define VEE_EPOLL_H
 
 #include <sys/epoll.h>
 
-// some define
+/*
+ * Create epfd, refer to the new epoll instance
+ */
+int vee_epoll_create(void);
 
-// TODO
-int vee_epoll_create();
-void vee_epoll_add();
-void vee_epoll_mod();
-void vee_epoll_del(); // never used in this program, maybe.
-void vee_epoll_wait();
+/* 
+ * Register the target file descriptor `fd` on the epoll instance 
+ * referred by file descriptor `epfd` and associate the ADD event 
+ * `event` with the internal file linked to `fd`.
+ */
+void vee_epoll_add(int epfd, int fd, struct epoll_event *ev);
 
-#endif
+/*
+ * Change the event `event` associated with the target file
+ * descriptor `fd`.
+ */
+void vee_epoll_mod(int epfd, int fd, struct epoll_event *ev);
+
+/*
+ * Remove the target file descriptor `fd` from the epoll instance
+ * referred by `epfd`. The `event` is ignored and can be NULL.
+ */
+void vee_epoll_del(int epfd, int fd, struct epoll_event *ev);
+
+/*
+ * Wait for events on the epoll instance referred by the file
+ * descriptor `epfd`. The memory area pointed to by `events`
+ * will contain the events that will be available for the caller.
+ * Up to `maxevents` are returned.
+ */
+int vee_epoll_wait(int epfd, struct epoll_event *evlist, int maxevents, int timeout);
+
+#endif  /* VEE_EPOLL_H */

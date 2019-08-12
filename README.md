@@ -82,3 +82,5 @@ what's the difference between level-triggered and edge-triggered?
 10. other 
 10.1 why use #ifndef XXX_H ... in the forefront of header files?
 10.2 what's close-on-exec? tlpi p1356
+
+致谢

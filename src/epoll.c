@@ -1,40 +1,47 @@
 #include "epoll.h"
+#include "error.h"  // TODO
 
-// TODO 
-//
-// #include "dbg.h"
-// 
-// struct epoll_event *events;
-// 
-// int vee_epoll_create(int flags) {
-//     int fd = epoll_create1(flags);
-//     check(fd > 0, "vee_epoll_create: epoll_create1");
-// 
-//     events = (struct epoll_event *)malloc(sizeof(epoll_event) * MAXEVENTS);
-//     check(events != NULL, "vee_epoll_create: malloc");
-//     return fd;
-// }
-// 
-// void vee_epoll_add(int epfd, int fd, struct epoll_event *event) {
-//     int rc = epoll_ctl(epfd, EPOLL_CTL_ADD, fd, event);
-//     check(rc == 0, "vee_epoll_add: epoll_ctl");
-//     return;
-// }
-// 
-// void vee_epoll_mod(int epfd, int fd, struct epoll_event *event) {
-//     int rc = epoll_ctl(epfd, EPOLL_CTL_MOD, fd, event);
-//     check(rc == 0, "vee_epoll_mod: epoll_ctl");
-//     return;
-// }
-// 
-// void vee_epoll_del(int epfd, int fd, struct epoll_event *event) {
-//     int rc = epoll_ctl(epfd, EPOLL_CTL_DEL, fd, event);
-//     check(rc == 0, "vee_epoll_del: epoll_ctl");
-//     return;
-// }
-// 
-// void vee_epoll_wait(int epfd, struct epoll_event *events, int maxevents, int timeout) {
-//     int n = epoll_wait(epfd, events, maxevents, timeout);
-//     check(n >= 0, "vee_epoll_wait: epoll_wait");
-//     return n;
-// }
+int vee_epoll_create(void)
+{
+    int epfd;
+    // TODO: epoll_create1 need parameter?
+    if ((epfd = epoll_create1()) == -1) {
+        err_sys();  // TODO
+    }
+
+    return epfd;
+}
+
+void vee_epoll_add(int epfd, int fd, struct epoll_event *ev)
+{
+    if (epoll_ctl(epfd, EPOLL_CTL_ADD, fd, ev) == -1) {
+        // operate EEXIST? EEXIST = ?
+        err_sys();  // TODO
+    }
+}
+
+void vee_epoll_mod(int epfd, int fd, struct epoll_event *ev)
+{
+    if (epoll_ctl(epfd, EPOLL_CTL_MOD, fd, ev) == -1) {
+        // operate ENOENT?
+        err_sys();  // TODO
+    }
+}
+
+void vee_epoll_del(int epfd, int fd, struct epoll_event *ev)
+{
+    if (epoll_ctl(epfd, EPOLL_CTL_DEL, fd, NULL) == -1) {
+        // operate ENOENT?
+        err_sys();  // TODO
+    }
+}
+
+int vee_epoll_wait(int epfd, struct epoll_event *evlist, int maxevents, int timeout)
+{
+    int ready;
+    if (ready = (epoll_wait(epfd, evlist, maxevents, int timeout)) == -1) {
+        err_sys();  // TODO
+    }
+
+    return ready;
+}
