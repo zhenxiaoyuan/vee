@@ -112,5 +112,5 @@ In a multithreaded program, it is possible for one thread to use epoll_ctl() to 
 - Deep in nonblock and block
 - Deep in kernel, how to connected epoll instance, interest list and ready list?
 - What's the advantages of edge-triggered?
-- EAGAIN and EWOULDBLOCK?
+- EAGAIN and EWOULDBLOCK - same errno - use EAGAIN - see more when deep in nonblock
 
