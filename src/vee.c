@@ -1,5 +1,6 @@
 /*
- *      Author:     Hao Zhen, <i_zhenhao@163.com>
+ *      Author:     Hao Zhen
+ *      E-Mail:     i_zhenhao@163.com
  */
 
 #define PORT_NUM 7777   // read in cfg file later
