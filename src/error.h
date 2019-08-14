@@ -1,5 +1,10 @@
-#ifndef ERROR_H
-#define ERROR_H
+#ifndef VEE_ERROR_H
+#define VEE_ERROR_H
+
+#include <stdarg.h>
+
+// TRUE, FALSE is wrong, modify it later
+typedef enum { TRUE, FALSE } Boolean;
 
 /*
 * Nonfatal error related to a system call.

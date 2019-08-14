@@ -4,6 +4,7 @@
  */
 
 #include "vee.h"
+#include <errno.h>
 #include "error.h"
 
 #define MAX_BUF     256     /* buffer size for read and write */
@@ -35,14 +36,15 @@ main(int argc, char *argv[])
 
     // bind server socket
     if (bind(sv_sock, (struct sockaddr *) &sv_addr, sizeof(sv_addr)) == -1)
-        error_exit("bind");
+        err_exit("bind");
 
     // start listening
     if (listen(sv_sock, MAX_LISTEN) == -1)
-        error_exit("listen");
+        err_exit("listen");
 
     // epoll declaration
-    struct epoll_event ev_list[MAX_EPOLL];
+    struct epoll_event *ev_list;
+    //struct epoll_event ev_list[MAX_EPOLL];
     struct epoll_event ev;
     int epfd, ready;
 
@@ -63,7 +65,7 @@ main(int argc, char *argv[])
             if (errno == EINTR)
                 continue;
             else
-                error_exit("epoll_wait");
+                err_exit("epoll_wait");
         }
 
         for (int i = 0; i < ready; i++) {
@@ -77,7 +79,7 @@ main(int argc, char *argv[])
                 ev.data.fd = cl_sock;
                 epoll_ctl(epfd, EPOLL_CTL_ADD, cl_sock, &ev);
 
-                log_info("connected client: %d", cl_sock);
+                //log_info("connected client: %d", cl_sock);
 
             } else {
                 // client socket
@@ -95,7 +97,7 @@ main(int argc, char *argv[])
                     else if (str_len == 0) {
                         close(ev_list[i].data.fd);
                         epoll_ctl(epfd, EPOLL_CTL_DEL, ev_list[i].data.fd, NULL);
-                        log_info("closed client: %d", ev_list[i].data.fd);
+                        //log_info("closed client: %d", ev_list[i].data.fd);
 
                         break;
                     }

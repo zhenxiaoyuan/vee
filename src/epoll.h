@@ -7,6 +7,9 @@
 
 #include <sys/epoll.h>
 
+#define VEE_EPOLL_FLAGS 0   // TODO: set in config file later
+#define VEE_MAXEVENTS   64
+
 /*
  * Create epfd, refer to the new epoll instance
  */
@@ -33,10 +36,10 @@ void vee_epoll_del(int epfd, int fd, struct epoll_event *ev);
 
 /*
  * Wait for events on the epoll instance referred by the file
- * descriptor `epfd`. The memory area pointed to by `events`
+ * descriptor `epfd`. The memory area pointed to by `ev_list`
  * will contain the events that will be available for the caller.
  * Up to `maxevents` are returned.
  */
-int vee_epoll_wait(int epfd, struct epoll_event *evlist, int maxevents, int timeout);
+int vee_epoll_wait(int epfd, struct epoll_event *ev_list, int maxevents, int timeout);
 
 #endif  /* VEE_EPOLL_H */

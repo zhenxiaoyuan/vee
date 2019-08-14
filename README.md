@@ -15,16 +15,6 @@
 1.4 implement of set_nonblock
 1.4.1 fcntl
 
-2 epoll
-what's the difference between level-triggered and edge-triggered?
-2.1 create
-2.2 ctl
-*edge trigger*
-*oneshot*
-2.2.1 add
-2.2.2 mod
-2.2.3 del
-2.3 wait
 
 3 threadpool
 3.1 init
@@ -71,9 +61,7 @@ what's the difference between level-triggered and edge-triggered?
 8.1 read the cfg file
 8.2 TODO: sig when remote close
 
-9 error and dbg
-9.1 error macro
-9.2 msg
+9 log and dbg
 9.2.1 log_err
 9.2.2 log_info
 9.3 debug

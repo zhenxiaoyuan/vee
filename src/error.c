@@ -1,8 +1,14 @@
-#include <stdarg.h>
+#include <string.h>     /* use for strerror */
+#include <stdlib.h>     /* use for exit */
+#include <unistd.h>     /* use for _exit */
+#include <errno.h>
+#include <stdio.h>
+
 #include "error.h"
+#include "ename.c.inc"
 
 #ifdef __GNUC__
-__attibute__ ((__noreturn__))
+__attribute__ ((__noreturn__))
 #endif
 static void
 terminate(Boolean use_exit3)
@@ -34,13 +40,13 @@ output_error(Boolean use_err, int err, Boolean flush_stdout,
     vsnprintf(user_msg, BUF_SIZE, format, ap);
 
     if (use_err)
-        snprintf(err_test, BUF_SIZE, " [%s %s]", 
+        snprintf(err_text, BUF_SIZE, " [%s %s]", 
                 (err > 0 && err <= MAX_ENAME) ? 
                 ename[err] : "?UNKNOWN?", strerror(err));
     else
-        snprintf(err_test, BUF_SIZE, ":");
+        snprintf(err_text, BUF_SIZE, ":");
 
-    snprintf(buf, BUF_SIZE, err_test, user_msg);
+    snprintf(buf, BUF_SIZE, err_text, user_msg);
 
     if (flush_stdout)
         fflush(stdout);     /* Flush any pending stdout */

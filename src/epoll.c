@@ -1,13 +1,19 @@
+#include <stdlib.h>     /* used for malloc */
+
 #include "epoll.h"
 #include "error.h"
+
+/* The ev_list that will be available for caller */
+struct epoll_event *ev_list;
 
 int
 vee_epoll_create(void)
 {
     int epfd;
-    // Q: epoll_create1 need parameter?
-    if ((epfd = epoll_create1()) == -1)
+    if ((epfd = epoll_create1(VEE_EPOLL_FLAGS)) == -1)
         err_exit("[vee_epoll_create] epoll_create1 error");
+
+    ev_list = (struct epoll_event *)malloc(sizeof(struct epoll_event) * VEE_MAXEVENTS);
 
     return epfd;
 }
@@ -29,15 +35,15 @@ vee_epoll_mod(int epfd, int fd, struct epoll_event *ev)
 void
 vee_epoll_del(int epfd, int fd, struct epoll_event *ev)
 {
-    if (epoll_ctl(epfd, EPOLL_CTL_DEL, fd, NULL) == -1)
+    if (epoll_ctl(epfd, EPOLL_CTL_DEL, fd, ev) == -1)
         err_exit("[vee_epoll_del] epoll_ctl error");
 }
 
 int
-vee_epoll_wait(int epfd, struct epoll_event *evlist, int maxevents, int timeout)
+vee_epoll_wait(int epfd, struct epoll_event *ev_list, int maxevents, int timeout)
 {
     int ready;
-    if (ready = (epoll_wait(epfd, evlist, maxevents, int timeout)) == -1)
+    if ((ready = epoll_wait(epfd, ev_list, maxevents, timeout)) == -1)
         err_exit("[vee_epoll_wait] epoll_wait error");
 
     return ready;

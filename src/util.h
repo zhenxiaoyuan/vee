@@ -1,5 +1,5 @@
-#ifndef UTIL_H
-#define UTIL_H
+#ifndef VEE_UTIL_H
+#define VEE_UTIL_H
 
 #define LISTENQ         1024
 
