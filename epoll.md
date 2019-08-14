@@ -99,7 +99,11 @@ EPOLLHUP    |   | • |A hangup has occurred
 - open file descriptor will removed only after all fd closed.
 - epoll interest list will remove the file descriptor after reference open file descriptor removed.
 
-因此，当 file descriptor 关闭后，epoll 会自动将其从 interest list中移出。  
+因此，当 file descriptor 对应的 open file descriptor 关闭后，epoll 会自动将其从 interest list中移出。  
+
+- When all file descriptors referring to an epoll instance have been closed, the kernel destroys the instance and releases the associated resources for reuse.
+
+同理，当 epoll file descriptor 对应的 open file descriptor 关闭后， 内核会回收资源以重用。
 
 ### 6. Tips
 
@@ -112,5 +116,5 @@ In a multithreaded program, it is possible for one thread to use epoll_ctl() to 
 - Deep in nonblock and block
 - Deep in kernel, how to connected epoll instance, interest list and ready list?
 - What's the advantages of edge-triggered?
-- EAGAIN and EWOULDBLOCK - same errno - use EAGAIN - see more when deep in nonblock
+- use EAGAIN - see more when deep in nonblock
 

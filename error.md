@@ -6,6 +6,19 @@ _err_exit   | • | errno |   | •
 err_exit_en | • | errnum| • | • 
 fatal       |   |       | • | • 
 
+exit() {
+    atexit();
+    on_exit();
+    fflush();
+    _exit();
+}
+
+main() {
+    return n == exit(n)
+}
+
+错误定义在 /usr/include/asm-generic 目录下的 errno-base.h 和 errno.h 中
+
 ### TODO
 1. The difference between exit() and _exit() - Chapter 25
 2. Where to use err_exit_en() and _err_exit()?
