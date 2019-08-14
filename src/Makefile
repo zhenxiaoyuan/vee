@@ -2,7 +2,7 @@ CC = gcc
 
 CFLAGS = -g -O0
 
-PROGS = yuan
+PROGS = vee
 
 all: $(PROGS)
 
