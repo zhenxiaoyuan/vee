@@ -60,4 +60,4 @@ void usage_err(const char *format, ...) NORETURN;
  */
 void cmd_err(const char *format, ...) NORETURN;
 
-#endif
+#endif  /* VEE_ERROR_H */

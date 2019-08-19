@@ -9,7 +9,7 @@ PROGS = vee vee_
 
 all:$(PROGS)
 
-vee:vee.o error.o epoll.o
+vee:vee.o error.o epoll.o priority_queue.o
 	$(CC) $(CFLAGS) $? -o vee
 
 vee_:vee_.o error.o epoll.o
@@ -25,6 +25,9 @@ error.o:error.c
 	$(CC) $(CFLAGS) -c $?
 
 epoll.o:epoll.c
+	$(CC) $(CFLAGS) -c $?
+
+priority_queue.o:priority_queue.c
 	$(CC) $(CFLAGS) -c $?
 
 .PHONY: all clean
