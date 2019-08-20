@@ -1,122 +1,72 @@
 #include <sys/time.h>
+#include <stdlib.h>
 
 #include "timer.h"
 #include "priority_queue.h"
 
-/*// timer comparation func, using when init the priority queue.*/
-/*static int timer_comp(void *ti, void *tj) {*/
-    /*vee_timer_node *timeri = (vee_timer_node *)ti;*/
-    /*vee_timer_node *timerj = (vee_timer_node *)tj;*/
+vee_priority_queue_t    *pq;
+unsigned long           current_msec;     /* Milliseconds */
 
-    /*return (timeri->key < timerj->key) ? 1 : 0;*/
-/*}*/
+static void vee_timer_update(void)
+{
+    struct timeval tv;
 
-/*vee_pq_t vee_timer;*/
-/*size_t vee_current_msec;*/
+    if (gettimeofday(&tv, NULL) == -1)
+        err_exit("[vee_timer_update] gettimeofday error");
 
-/*// update current time*/
-/*static void vee_time_update() {*/
-    /*struct timeval tv;*/
-    /*int rc;*/
+    current_msec = tv.tv_sec * 1000 + tv.tv_usec / 1000;
+}
 
-    /*rc = gettimeofday(&tv, NULL);*/
-    /*check(rc == 0, "vee_time_update: gettimeofday error");*/
+void vee_timer_init(void)
+{
+    vee_pq_init(pq);
+    vee_timer_update();
+}
 
-    /*vee_current_msec = tv.tv_sec * 1000 + tv.tv_usec / 1000;*/
-    /*debug("in vee_time_update, time = %zu", vee_current_msec);*/
-/*}*/
+int vee_find_timer(void)
+{
+    int timer;
+    vee_priority_queue_node_t *node;
+    node = vee_pq_min(pq);
 
-/*int vee_timer_init() {*/
-    /*int rc;*/
-    /*rc = vee_pq_init(&vee_timer, timer_comp, VEE_PQ_DEFAULT_SIZE);*/
-    /*check(rc == VEE_OK, "vee_pq_init error");*/
+    vee_timer_update();
+    timer = node->key - current_msec;
+    return timer > 0 ? timer : 0;
+}
 
-    /*vee_time_update();*/
-    /*return VEE_OK;*/
-/*}*/
+void vee_expire_timers(void)
+{
+    vee_priority_queue_node_t *node;
+    // vee_http_request_t * r;
 
-/*int vee_find_timer() {*/
-    /*vee_timer_node *timer_node;*/
-    /*int time = VEE_TIMER_INFINITE;*/
-    /*int rc;*/
+    while (!vee_pq_is_empty(pq)) {
+        node = vee_pq_min(pq);
 
-    /*while (!vee_pq_is_empty(&vee_timer)) {*/
-        /*debug("vee_find_timer");*/
-        /*vee_time_update();*/
-        /*timer_node = (vee_timer_node *)vee_pq_min(&vee_timer);*/
-        /*check(timer_node != NULL, "vee_pq_min error");*/
+        vee_timer_update();
+        if ((node->key - current_msec) > 0)
+            return;
 
-        /*if (timer_node->deleted) {*/
-            /*rc = vee_pq_delmin(&vee_timer);*/
-            /*check(rc == 0, "vee_pq_delmin");*/
-            /*free(time_node);*/
-            /*continue;*/
-        /*}*/
+        /* Is node->deleted necessary if close fd while delete the minimum node? */
+        if (node->deleted == VEE_PQ_NODE_DELETED) {
+            vee_pq_del_min(pq);
+            continue;
+        }
 
-        /*time = (int) (timer_node->key - vee_current_msec);*/
-        /*debug("in vee_find_timer, key = %zu, cur = %zu",*/
-                /*timer_node->key,*/
-                /*vee_current_msec);*/
-        /*time = (time > 0 ? time : 0);*/
-        /*break;*/
-    /*}*/
+        vee_pq_del_min(pq);
+    }
+}
 
-    /*return time;*/
-/*}*/
+void vee_add_timer(vee_http_request_t *r, unsigned long timeout)
+{
+    vee_priority_queue_node_t *node;
+    /* TODO: Palloc later */
+    if ((node = (vee_priority_queue_node_t *)malloc(sizeof(vee_priority_queue_node_t))) == NULL)
+        err_exit("[vee_add_timer] malloc vee_priority_queue_node_t error");
 
-/*void vee_handle_expire_timers() {*/
-    /*debug("in vee_handle_expire_timers");*/
-    /*vee_timer_node *timer_node;*/
-    /*int rc;*/
+    vee_timer_update();
+    node->key = current_msec + timeout;
+    node->data = (void *)r;
+    node->deleted = VEE_PQ_NODE_NOT_DELETED;
 
-    /*while (!vee_pq_is_empty(&vee_timer)) {*/
-        /*debug("vee_handle_expire_timers, size = %zu", vee_pq_size(&vee_timer));*/
-        /*vee_time_update();*/
-        /*timer_node = (vee_timer_node *)vee_pq_min(&vee_timer);*/
-        /*check(timer_node != NULL, "vee_pq_min error");*/
-
-        /*if (timer_node->deleted) {*/
-            /*rc = vee_pq_delmin(&vee_timer);*/
-            /*check(rc == 0, "vee_handle_expire_timers: vee_pq_delmin error");*/
-            /*free(timer_node);*/
-            /*continue;*/
-        /*}*/
-
-        /*if (timer_node->key > vee_current_msec) {*/
-            /*return;*/
-        /*}*/
-
-        /*if (timer_node->handler) {*/
-            /*timer_node->handler(timer_node->rq);*/
-        /*}*/
-        /*rc = vee_pq_delmin(&vee_timer);*/
-        /*check(rc == 0, "vee_handle_expire_timers: vee_pq_delmin error");*/
-        /*free(timer_node);*/
-    /*}*/
-/*}*/
-
-/*void vee_add_timer(vee_http_request_t *rq, size_t timeout, timer_handler_pt handler) {*/
-    /*int rc;*/
-    /*vee_timer_node *timer_node = (vee_timer_node *)malloc(sizeof(vee_timer_node));*/
-    /*check(timer_node != NULL, "vee_add_timer: malloc error");*/
-
-    /*vee_time_update();*/
-    /*rq->timer = timer_node;*/
-    /*timer_node->key = vee_current_msec + timeout;*/
-    /*debug("in vee_add_timer, key = %zu", timer_node->key);*/
-    /*timer_node->deleted = 0;*/
-    /*timer_node->handler = handler;*/
-    /*timer_node->rq = rq;*/
-
-    /*rc = vee_pq_insert(&vee_timer, timer_node);*/
-    /*check(rc == 0, "vee_add_timer: vee_pq_insert error");*/
-/*}*/
-
-/*void vee_del_timer(vee_http_request_t *rq) {*/
-    /*debug("in vee_del_timer");*/
-    /*vee_time_update();*/
-    /*vee_timer_node *timer_node = rq->timer;*/
-    /*check(timer_node != NULL, "vee_del_timer: rq->timer is NULL");*/
-
-    /*timer_node->deleted = 1;*/
-/*}*/
+    vee_pq_insert(pq, node);
+}

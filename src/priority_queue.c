@@ -40,13 +40,7 @@ vee_priority_queue_node_t *vee_pq_del_min(vee_priority_queue_t *pq)
     int i, child;
     vee_priority_queue_node_t *min, *last;
 
-    if (vee_pq_not_inited(pq))
-        err_exit("[vee_pq_min] priority queue has not been initialized");
-
-    if (vee_pq_is_empty(pq))
-        err_exit("[vee_pq_min] priority queue is empty");
-
-    min = pq->nodes[1];
+    min = vee_pq_min(pq);   /* min = pq->nodes[1] */
     last = pq->nodes[pq->size--];
 
     /* Percolate down */
@@ -64,6 +58,8 @@ vee_priority_queue_node_t *vee_pq_del_min(vee_priority_queue_t *pq)
     }
 
     pq->nodes[i] = last;
+
+    /* TODO: Close connection while node deleted */
 
     return min;
 }
@@ -90,6 +86,8 @@ void vee_pq_node_set_deleted(vee_priority_queue_node_t *node)
 
     if (VEE_PQ_NODE_DELETED != node->deleted)
         node->deleted = VEE_PQ_NODE_DELETED;
+
+    /* TODO: Close connection while node deleted */
 }
 
 int vee_pq_is_empty(vee_priority_queue_t *pq)
