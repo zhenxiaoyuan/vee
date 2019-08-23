@@ -3,8 +3,7 @@
 
 #include <stdarg.h>
 
-// TRUE, FALSE is wrong, modify it later
-typedef enum { TRUE, FALSE } Boolean;
+typedef enum { FALSE, TRUE } Boolean;
 
 /*
 * Nonfatal error related to a system call.

@@ -5,12 +5,25 @@
 
 void vee_pq_init(vee_priority_queue_t *pq)
 {
+    if ((pq = (vee_priority_queue_t *)malloc(sizeof(vee_priority_queue_t))) == NULL)
+        err_exit("[vee_pq_init] malloc priority queue error");
+
     if ((pq->nodes = (vee_priority_queue_node_t **)malloc
                 (sizeof(vee_priority_queue_node_t *) * VEE_MAX_PQ_SIZE)) == NULL)
-        err_exit("[vee_pq_init] malloc pq->nodes error");
+        err_exit("[vee_pq_init] malloc priority queue nodes error");
 
     pq->size = 0;
-    pq->nodes[0]->key = VEE_PQ_NODE_MIN_DATA;    /* Dummy piece of information for `percolate up` */
+
+    /* Initialize the first node of priority queue. */
+    vee_priority_queue_node_t *node;
+    if ((node = (vee_priority_queue_node_t *)malloc(sizeof(vee_priority_queue_node_t))) == NULL)
+        err_exit("[vee_pq_init] malloc priority queue first node error");
+
+    node->key = VEE_PQ_NODE_MIN_DATA;       /* Dummy piece of information for `percolate up` */
+    node->data = (void *)NULL;
+    node->deleted = VEE_PQ_NODE_NOT_DELETED;
+
+    pq->nodes[0] = node;
 }
 
 void vee_pq_insert(vee_priority_queue_t *pq, vee_priority_queue_node_t *node)

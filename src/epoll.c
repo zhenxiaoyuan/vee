@@ -3,9 +3,6 @@
 #include "epoll.h"
 #include "error.h"
 
-/* The ev_list that will be available for caller */
-struct epoll_event *ev_list;
-
 int
 vee_epoll_create(void)
 {

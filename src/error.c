@@ -46,7 +46,7 @@ output_error(Boolean use_err, int err, Boolean flush_stdout,
     else
         snprintf(err_text, BUF_SIZE, ":");
 
-    snprintf(buf, BUF_SIZE, err_text, user_msg);
+    snprintf(buf, BUF_SIZE, "ERROR%s %s\n", err_text, user_msg);
 
     if (flush_stdout)
         fflush(stdout);     /* Flush any pending stdout */

@@ -2,10 +2,7 @@
 #include <stdlib.h>
 
 #include "timer.h"
-#include "priority_queue.h"
-
-vee_priority_queue_t    *pq;
-unsigned long           current_msec;     /* Milliseconds */
+#include "error.h"
 
 static void vee_timer_update(void)
 {
@@ -56,7 +53,7 @@ void vee_expire_timers(void)
     }
 }
 
-void vee_add_timer(vee_http_request_t *r, unsigned long timeout)
+void vee_add_timer(vee_conn_t *conn, unsigned long timeout)
 {
     vee_priority_queue_node_t *node;
     /* TODO: Palloc later */
@@ -65,7 +62,7 @@ void vee_add_timer(vee_http_request_t *r, unsigned long timeout)
 
     vee_timer_update();
     node->key = current_msec + timeout;
-    node->data = (void *)r;
+    node->data = (void *)conn;
     node->deleted = VEE_PQ_NODE_NOT_DELETED;
 
     vee_pq_insert(pq, node);
