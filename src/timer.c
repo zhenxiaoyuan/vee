@@ -16,15 +16,18 @@ static void vee_timer_update(void)
 
 void vee_timer_init(void)
 {
-    vee_pq_init(pq);
+    pq = vee_pq_init(pq);
     vee_timer_update();
 }
 
 int vee_find_timer(void)
 {
-    int timer;
+    long timer;
     vee_priority_queue_node_t *node;
-    node = vee_pq_min(pq);
+    if(!vee_pq_is_empty(pq))
+        node = vee_pq_min(pq);
+    else
+        return -1;
 
     vee_timer_update();
     timer = node->key - current_msec;
@@ -34,7 +37,6 @@ int vee_find_timer(void)
 void vee_expire_timers(void)
 {
     vee_priority_queue_node_t *node;
-    // vee_http_request_t * r;
 
     while (!vee_pq_is_empty(pq)) {
         node = vee_pq_min(pq);

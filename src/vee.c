@@ -13,7 +13,6 @@
 #include "epoll.h"
 #include "error.h"
 #include "timer.h"
-/*#include "priority_queue.h"*/
 #include "request.h"
 
 #define PORT_NUM 7777   // read in cfg file later
@@ -21,8 +20,8 @@
 #define LISTENQ  8
 #define VEE_DEFAULT_TIMEOUT 500         /* Milliseconds */
 
-/*extern struct epoll_event *ev_list;*/
-/*extern vee_priority_queue_t *pq;*/
+/* Defined at epoll.h */
+extern struct epoll_event *ev_list;
 
 void make_socket_non_block(int socket);
 
@@ -88,9 +87,7 @@ int main(int argc, char **argv) {
     //vee_threadpool_init();  // TODO: threadpool
     // init timer, priority queue included in timer
     vee_timer_init();
-    vee_timer_init();
 
-    //
     while (1) {
         // find the minest timer for epoll_wait
         timer = vee_find_timer();

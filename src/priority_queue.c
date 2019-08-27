@@ -3,7 +3,7 @@
 #include "priority_queue.h"
 #include "error.h"
 
-void vee_pq_init(vee_priority_queue_t *pq)
+vee_priority_queue_t *vee_pq_init(vee_priority_queue_t *pq)
 {
     if ((pq = (vee_priority_queue_t *)malloc(sizeof(vee_priority_queue_t))) == NULL)
         err_exit("[vee_pq_init] malloc priority queue error");
@@ -24,6 +24,8 @@ void vee_pq_init(vee_priority_queue_t *pq)
     node->deleted = VEE_PQ_NODE_NOT_DELETED;
 
     pq->nodes[0] = node;
+
+    return pq;
 }
 
 void vee_pq_insert(vee_priority_queue_t *pq, vee_priority_queue_node_t *node)
@@ -40,12 +42,11 @@ void vee_pq_insert(vee_priority_queue_t *pq, vee_priority_queue_node_t *node)
 
     /* Percolate up */
     int i;
-    for (i = pq->size; pq->nodes[i/2]->key > node->key; i /= 2) {
+    for (i = ++pq->size; pq->nodes[i/2]->key > node->key; i /= 2) {
         pq->nodes[i] = pq->nodes[i/2];
     }
 
     pq->nodes[i] = node;
-    pq->size++;
 }
 
 vee_priority_queue_node_t *vee_pq_del_min(vee_priority_queue_t *pq)
@@ -84,9 +85,6 @@ vee_priority_queue_node_t *vee_pq_min(vee_priority_queue_t *pq)
     if (vee_pq_not_inited(pq))
         err_exit("[vee_pq_min] priority queue has not been initialized");
 
-    if (vee_pq_is_empty(pq))
-        err_exit("[vee_pq_min] priority queue is empty");
-
     min = pq->nodes[1];
 
     return min;
@@ -110,7 +108,7 @@ int vee_pq_is_empty(vee_priority_queue_t *pq)
 
 int vee_pq_is_full(vee_priority_queue_t *pq)
 {
-    return (++pq->size == VEE_MAX_PQ_SIZE);
+    return ((pq->size+1) == VEE_MAX_PQ_SIZE);
 }
 
 int vee_pq_not_inited(vee_priority_queue_t *pq)
