@@ -12,7 +12,7 @@
 
 ```
     int epoll_create(int size);
-    int epoll_create1();            // starting with kernel 2.6.27
+    int epoll_create1(flag);            // starting with kernel 2.6.27
             // return epfd on success, or -1 on error.
 ```
 
