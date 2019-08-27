@@ -10,6 +10,9 @@
 #define VEE_EPOLL_FLAGS 0   // TODO: set in config file later
 #define VEE_MAXEVENTS   64
 
+/* The ev_list that will be available for caller */
+struct epoll_event *ev_list;
+
 /*
  * Create epfd, refer to the new epoll instance
  */

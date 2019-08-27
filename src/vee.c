@@ -12,11 +12,15 @@
 
 #include "epoll.h"
 #include "error.h"
+#include "timer.h"
+#include "request.h"
 
 #define PORT_NUM 7777   // read in cfg file later
 #define MAX_BUF     256     /* buffer size for read and write */
 #define LISTENQ  8
+#define VEE_DEFAULT_TIMEOUT 500         /* Milliseconds */
 
+/* Defined at epoll.h */
 extern struct epoll_event *ev_list;
 
 void make_socket_non_block(int socket);
@@ -57,20 +61,21 @@ int main(int argc, char **argv) {
     //
     // epoll
     // init
-    int epfd;
+    int epfd, timer;
     epfd = vee_epoll_create();
     // TODO: make to vee_epoll_init()
 //    extern struct epoll_event *ev_list;
     struct epoll_event ev;
     //
     // init request
+    vee_conn_t *svr_conn = vee_conn_init(svr_sock, epfd);
     /*vee_http_request_t *request = (vee_http_request_t *)malloc(sizeof(vee_http_request_t));*/
     /*vee_init_request_t(request, fd);*/
 
     // add listenfd to epoll
     ev.events = EPOLLIN | EPOLLET;
-    ev.data.fd = svr_sock;
-    //ev.data.ptr = (void *)request;
+    //ev.data.fd = svr_sock;
+    ev.data.ptr = (void *)svr_conn;
     // set ev.data.fd in vee_init_request_t()
     // what's the diff between ev.data.fd and ev.data.ptr->fd
 
@@ -81,23 +86,24 @@ int main(int argc, char **argv) {
     // init thread pool
     //vee_threadpool_init();  // TODO: threadpool
     // init timer, priority queue included in timer
-    //vee_timer_init();       // TODO: timer
-    //
+    vee_timer_init();
+
     while (1) {
         // find the minest timer for epoll_wait
-        //time = vee_find_timer();
+        timer = vee_find_timer();
         // epoll_wait
-        int ready = vee_epoll_wait(epfd, ev_list, VEE_MAXEVENTS, -1/*time*/);
+        int ready = vee_epoll_wait(epfd, ev_list, VEE_MAXEVENTS, timer);
         //int ready = epoll_wait(epfd, ev_list, VEE_MAXEVENTS, -1/*time*/);
         // expire timers
-        //vee_handle_expire_timers();
-        //
+        vee_expire_timers();
+
         for (int i = 0; i < ready; i++) {
             //vee_http_request_t request = (vee_http_request_t *)malloc(sizeof(vee_http_request_t));
             //vee_http_request_t request = (vee_http_request_t *)ev_list[i].data.ptr;
             //svr_sock = request->fd; // use infd at here later
+            vee_conn_t *conn = (vee_conn_t *)ev_list[i].data.ptr;
             // fd == listenfd
-            if (svr_sock == ev_list[i].data.fd) {
+            if (svr_sock == conn->fd) {
                 // accept clt_sock
                 addr_len = sizeof(clt_addr);
                 clt_sock = accept(svr_sock, (struct sockaddr *) &clt_addr, &addr_len);
@@ -108,16 +114,21 @@ int main(int argc, char **argv) {
                 // maybe no influence: ev_list changed in kernel
 
                 // init request
+                vee_conn_t *clt_conn = vee_conn_init(clt_sock, epfd);
+                // divide to conn and request(include conn and others)
                 //vee_http_request_t *request = (vee_http_request_t *)malloc(sizeof(vee_http_request_t));
                 //vee_init_request_t(request);
 
                 // add listenfd to epoll
                 ev.events = EPOLLIN | EPOLLET | EPOLLONESHOT;
-                ev.data.fd = clt_sock;
+                /*ev.data.fd = clt_sock;*/
+                ev.data.ptr = (void *)clt_conn;
                 //ev.data.ptr = (void *)request;  // what's the structure of ev.data ?
 
                 vee_epoll_add(epfd, clt_sock, &ev);
-                //vee_add_timer()
+
+                vee_add_timer(clt_conn, VEE_DEFAULT_TIMEOUT);
+
             } else {
                 // exclude error event, !EPOLLIN is ok, why use ERR and HUP?
                 if ((ev_list[i].events & EPOLLERR) ||
@@ -125,7 +136,7 @@ int main(int argc, char **argv) {
                     (!(ev_list[i].events & EPOLLIN))) {
                     //log_err(); // TODO: log
                     // err_msg();
-                    close(ev_list[i].data.fd);
+                    close(conn->fd);
                     continue;
                 }
                 // add to threadpool to do request
@@ -133,22 +144,22 @@ int main(int argc, char **argv) {
                 while (1) {
                     // client socket - read
                     // temp variable?
-                    str_len = read(ev_list[i].data.fd, buf, MAX_BUF);
+                    str_len = read(conn->fd, buf, MAX_BUF);
 
                     // str_len < 0 - judge EAGAIN
                     // todo: read tlpi/chapter4
                     if (str_len == -1) {
                         if (errno == EAGAIN) {
                             ev.events = EPOLLIN | EPOLLET | EPOLLONESHOT;
-                            ev.data.fd = ev_list[i].data.fd;
-                            vee_epoll_mod(epfd, ev_list[i].data.fd, &ev);
+                            ev.data.ptr = (void *)conn;
+                            vee_epoll_mod(epfd, conn->fd, &ev);
                             break;
                         }
                     }
                     // str_len == 0 - read completed - close client socket and delete in epoll
                     else if (str_len == 0) {
                         //vee_epoll_del(epfd, ev_list[i].data.fd, (struct epoll_event *)NULL);
-                        close(ev_list[i].data.fd);
+                        close(conn->fd);
                         //ev.events = EPOLLIN | EPOLLET | EPOLLONESHOT;
                         //ev.data.fd = ev_list[i].data.fd;
                         //vee_epoll_mod(epfd, ev_list[i].data.fd, &ev);
@@ -158,7 +169,7 @@ int main(int argc, char **argv) {
                     }
                     // str_len > 0 - write
                     else {
-                        write(ev_list[i].data.fd, buf, str_len);
+                        write(conn->fd, buf, str_len);
                     }
                 }
 

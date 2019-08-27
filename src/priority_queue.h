@@ -1,28 +1,82 @@
-#ifndef PRIORITY_QUEUE_H
-#define PRIORITY_QUEUE_H
+#ifndef VEE_PRIORITY_QUEUE_H
+#define VEE_PRIORITY_QUEUE_H
 
-#include "dbg.h"
-#include "error.h"
+#define VEE_MAX_PQ_SIZE         65535
+#define VEE_PQ_NODE_DELETED     1
+#define VEE_PQ_NODE_NOT_DELETED 0
+#define VEE_PQ_NODE_MIN_DATA    0
 
-#define VEE_PQ_DEFAULT_SIZE 10
+/*
+ * Priority queue node structure.
+ */
+typedef struct vee_priority_queue_node_s {
+    unsigned long   key;       /* Comparable key to determine priority TODO: change char to time */
+    void            *data;      /* Data */
+    unsigned short  deleted;    /* NECESSARY: 1-Yes | 0-No */
+} vee_priority_queue_node_t;
 
-typedef int (*vee_pq_comparator_pt)(void *pi, void *pj);
+/* 
+ * Priority queue (not using the first entry of `nodes`).
+ * 
+ * The parent of the node in position k is in position k/2 and,
+ * conversely, the two children of the node in the position k
+ * are in positions 2k and 2k + 1.
+ * 
+ * TODO: Dynamic enlarge `nodes` memory space.
+ */
+typedef struct vee_priority_queue_s {
+    vee_priority_queue_node_t **nodes;      /* An Array `nodes` store all pointers of node */
+    unsigned int                size;       /* The number of nodes in priority queue */
+} vee_priority_queue_t;
 
-typedef struct {
-    void **pq;      // why **?
-    size_t nalloc;  // the diff between nalloc and size?
-    size_t size;
-    vee_pq_comparator_pt comp;
-} vee_pq_t;
+/*
+ * Initialize a priority queue.
+ */
+vee_priority_queue_t *vee_pq_init(vee_priority_queue_t *pq);
 
-int vee_pq_init(vee_pq_t *vee_pq, vee_pq_comparator_pt comp, size_t size);
-int vee_pq_is_empty(vee_pq_t *vee_pq);
-size_t vee_pq_size(vee_pq_t *vee_pq);
-void *vee_pq_min(vee_pq_t *vee_pq);
-int vee_pq_delmin(vee_pq_t *vee_pq);
-int vee_pq_insert(vee_pq_t *vee_pq, void *item);
+/*
+ * Insert a node into priority queue.
+ */
+void vee_pq_insert(vee_priority_queue_t *pq, vee_priority_queue_node_t *node);
 
-// what's this?
-int vee_pq_sink(vee_pq_t *vee_pq, size_t i);
+/*
+ * Delete the minimum node.
+ */
+vee_priority_queue_node_t *vee_pq_del_min(vee_priority_queue_t *pq);
 
-#endif
+/*
+ * Return the minimum node.
+ */
+vee_priority_queue_node_t *vee_pq_min(vee_priority_queue_t *pq);
+
+/*
+ * Set the deleted flag of `node`.
+ */
+void vee_pq_node_set_deleted(vee_priority_queue_node_t *node);
+
+/*
+ * Is the priority queue empty?
+ */
+int vee_pq_is_empty(vee_priority_queue_t *pq);
+
+/*
+ * Is the priority queue full?
+ */
+int vee_pq_is_full(vee_priority_queue_t *pq);
+
+/*
+ * Is the priority queue has not been initialized?
+ */
+int vee_pq_not_inited(vee_priority_queue_t *pq);
+
+/*
+ * Is the priority queue node is null?
+ */
+int vee_pq_node_is_null(vee_priority_queue_node_t *node);
+
+/*
+ * Get the number of nodes in priority queue.
+ */
+unsigned int vee_pq_get_size(vee_priority_queue_t *pq);
+
+#endif  /* VEE_PRIORITY_QUEUE_H */

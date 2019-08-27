@@ -2,14 +2,11 @@ CC = gcc -std=gnu99
 
 CFLAGS = -g -O0
 
-PROGS = vee vee_
-
-#all:vee.o error.o epoll.o
-#	$(CC) $(CFLAGS) $? -o $(PROGS)
+PROGS = vee
 
 all:$(PROGS)
 
-vee:vee.o error.o epoll.o
+vee:error.o epoll.o priority_queue.o timer.o request.o vee.o
 	$(CC) $(CFLAGS) $? -o vee
 
 vee_:vee_.o error.o epoll.o
@@ -25,6 +22,15 @@ error.o:error.c
 	$(CC) $(CFLAGS) -c $?
 
 epoll.o:epoll.c
+	$(CC) $(CFLAGS) -c $?
+
+priority_queue.o:priority_queue.c
+	$(CC) $(CFLAGS) -c $?
+
+timer.o:timer.c
+	$(CC) $(CFLAGS) -c $?
+
+request.o:request.c
 	$(CC) $(CFLAGS) -c $?
 
 .PHONY: all clean

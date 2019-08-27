@@ -1,115 +1,122 @@
+#include <stdlib.h>     /* used for malloc */
+
 #include "priority_queue.h"
+#include "error.h"
 
-int vee_pq_init(vee_pq_t *vee_pq, vee_pq_comparator_pt comp, size_t size) {
-    vee_pq->pq = (void **)malloc(sizeof(void *) * (size+1));
-    if (!vee_pq->pq) {
-        log_err("vee_pq_init: malloc failed");
-        return -1;
+vee_priority_queue_t *vee_pq_init(vee_priority_queue_t *pq)
+{
+    if ((pq = (vee_priority_queue_t *)malloc(sizeof(vee_priority_queue_t))) == NULL)
+        err_exit("[vee_pq_init] malloc priority queue error");
+
+    if ((pq->nodes = (vee_priority_queue_node_t **)malloc
+                (sizeof(vee_priority_queue_node_t *) * VEE_MAX_PQ_SIZE)) == NULL)
+        err_exit("[vee_pq_init] malloc priority queue nodes error");
+
+    pq->size = 0;
+
+    /* Initialize the first node of priority queue. */
+    vee_priority_queue_node_t *node;
+    if ((node = (vee_priority_queue_node_t *)malloc(sizeof(vee_priority_queue_node_t))) == NULL)
+        err_exit("[vee_pq_init] malloc priority queue first node error");
+
+    node->key = VEE_PQ_NODE_MIN_DATA;       /* Dummy piece of information for `percolate up` */
+    node->data = (void *)NULL;
+    node->deleted = VEE_PQ_NODE_NOT_DELETED;
+
+    pq->nodes[0] = node;
+
+    return pq;
+}
+
+void vee_pq_insert(vee_priority_queue_t *pq, vee_priority_queue_node_t *node)
+{
+    if (vee_pq_not_inited(pq))
+        err_exit("[vee_pq_insert] priority queue has not been initialized");
+
+    if (vee_pq_is_full(pq))
+        // TODO: Dynamic enlarge `nodes` memory space. What to do if space left?
+        err_msg("[vee_pq_insert] priority queue is full");
+
+    if (vee_pq_node_is_null(node))
+        err_exit("[vee_pq_insert] priority queue node is null");
+
+    /* Percolate up */
+    int i;
+    for (i = ++pq->size; pq->nodes[i/2]->key > node->key; i /= 2) {
+        pq->nodes[i] = pq->nodes[i/2];
     }
 
-    vee_pq->nalloc = 0;
-    vee_pq->size = size + 1;
-    vee_pq->comp = comp;
-
-    return VEE_OK;
+    pq->nodes[i] = node;
 }
 
-int vee_pq_is_empty(vee_pq_t *vee_pq) {
-    return (vee_pq-nalloc == 0) ? 1 : 0;
-}
+vee_priority_queue_node_t *vee_pq_del_min(vee_priority_queue_t *pq)
+{
+    int i, child;
+    vee_priority_queue_node_t *min, *last;
 
-size_t vee_pq_size(vee_pq_t *vee_pq) {
-    return vee_pq->nalloc;
-}
+    min = vee_pq_min(pq);   /* min = pq->nodes[1] */
+    last = pq->nodes[pq->size--];
 
-void *vee_pq_min(vee_pq_t *vee_pq) {
-    if (vee_pq_is_empty(vee_pq)) {
-        return NULL;
+    /* Percolate down */
+    for (i = 1; i <= pq->size; i = child) {
+        /* Find smaller chile */
+        child = i * 2;
+        if (child != pq->size && pq->nodes[child]->key > pq->nodes[child+1]->key)
+            child++;
+
+        /* Percolate one level */
+        if (last->key > pq->nodes[child]->key)
+            pq->nodes[i] = pq->nodes[child];
+        else
+            break;
     }
 
-    return vee_pq->pq[1];  // why return the index 1?
+    pq->nodes[i] = last;
+
+    /* TODO: Close connection while node deleted */
+
+    return min;
 }
 
-static int resize(vee_pq_t *vee_pq, size_t new_size) {
-    if (new_size <= vee_pq_nalloc) {
-        log_err("resize: new_size to small");
-        return -1;
-    }
+vee_priority_queue_node_t *vee_pq_min(vee_priority_queue_t *pq)
+{
+    vee_priority_queue_node_t *min;
 
-    void **new_ptr = (void **)malloc(sizeof(void *) * new_size);
-    if (!new_ptr) {
-        log_err("resize: malloc failed");
-        return -1;
-    }
+    if (vee_pq_not_inited(pq))
+        err_exit("[vee_pq_min] priority queue has not been initialized");
 
-    memcpy(new_ptr, vee_pq->pq, sizeof(void *) * (vee_pq->nalloc + 1));
-    free(vee_pq->pq);
-    vee_pq->pq = new_ptr;
-    vee_pq->size = new_size;
+    min = pq->nodes[1];
 
-    return VEE_OK;
+    return min;
 }
 
-static void exch(vee_pq_t *vee_pq, size_t i, size_t j) {
-    void *tmp = vee_pq->pq[i];
-    vee_pq->pq[i] = vee_pq->pq[j];
-    vee_pq->pq[j] = tmp;
+void vee_pq_node_set_deleted(vee_priority_queue_node_t *node)
+{
+    if (vee_pq_node_is_null(node))
+        err_exit("[vee_pq_insert] priority queue node is null");
+
+    if (VEE_PQ_NODE_DELETED != node->deleted)
+        node->deleted = VEE_PQ_NODE_DELETED;
+
+    /* TODO: Close connection while node deleted */
 }
 
-// what about k?
-static void swim(vee_pq_t *vee_pq, size_t k) {
-    while (k > 1 && vee_pq->comp(vee_pq->pq[k], vee_pq->pq[k/2])) {
-        exch(vee_pq, k, k/2);
-        k /= 2;
-    }
+int vee_pq_is_empty(vee_priority_queue_t *pq)
+{
+    return !pq->size;
 }
 
-// what's this func mean?
-static size_t sink(vee_pq_t *vee_pq, size_t k) {
-    size_t j;
-    size_t nalloc = vee_pq->nalloc;
-
-    while (2*k <= nalloc) {
-        j = 2*k;
-        if (j < nalloc && vee_pq->comp(vee_pq->pq[j+1], vee_pq->pq[j])) j++;
-        if (!vee_pq->comp(vee_pq->pq[j], vee_pq->pq[k])) break;
-        exch(vee_pq, j, k);
-        k = j;
-    }
-
-    return k;
+int vee_pq_is_full(vee_priority_queue_t *pq)
+{
+    return ((pq->size+1) == VEE_MAX_PQ_SIZE);
 }
 
-int vee_pq_delmin(vee_pq_t *vee_pq) {
-    if (vee_pq_is_empty(vee_pq)) {
-        return VEE_OK;
-    }
-
-    exch(vee_pq, 1, vee_pq->nalloc);
-    vee_pq->nalloc--;
-    sink(vee_pq, 1);
-    if (vee_pq->nalloc > 0 && vee_pq->nalloc <= (vee_pq->size - 1)/4) {
-        if (resize(vee_pq, vee_pq->size / 2) < 0) {
-            return -1;
-        }
-    }
-
-    return VEE_OK;
+int vee_pq_not_inited(vee_priority_queue_t *pq)
+{
+    return (!pq || !pq->nodes);
 }
 
-int vee_pq_insert(vee_pq_t *vee_pq, void *item) {
-    if (vee_pq->nalloc + 1 == vee_pq->size) {
-        if (resize(vee_pq, vee_pq->size * 2) < 0) {
-            return -1;
-        }
-    }
-
-    vee_pq->pq[++vee_pq->nalloc] = item;
-    swim(vee_pq, vee_pq->nalloc);
-
-    return VEE_OK;
-}
-
-int vee_pq_sink(vee_pq_t *vee_pq, size_t i) {
-    return sink(vee_pq, i);
+int vee_pq_node_is_null(vee_priority_queue_node_t *node)
+{
+    return (NULL == node);
 }
