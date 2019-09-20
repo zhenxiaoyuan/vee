@@ -12,6 +12,7 @@
 
 #include "epoll.h"
 #include "error.h"
+#include "log.h"
 #include "timer.h"
 #include "request.h"
 
@@ -19,6 +20,10 @@
 #define MAX_BUF     256     /* buffer size for read and write */
 #define LISTENQ  8
 #define VEE_DEFAULT_TIMEOUT 500         /* Milliseconds */
+
+#define ERROR   0
+#define INFO    1
+#define DEBUG   2
 
 /* Defined at epoll.h */
 extern struct epoll_event *ev_list;
@@ -55,7 +60,9 @@ int main(int argc, char **argv) {
     // listen
     if (listen(svr_sock, LISTENQ) == -1)
         err_exit("[main] listen error");
-    //
+
+    logger(INFO, "Start Listening...");
+
     // set_nonblock
     make_socket_non_block(svr_sock);
     //

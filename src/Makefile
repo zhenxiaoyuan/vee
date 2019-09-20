@@ -6,7 +6,7 @@ PROGS = vee
 
 all:$(PROGS)
 
-vee:error.o epoll.o priority_queue.o timer.o request.o vee.o
+vee:error.o log.o epoll.o priority_queue.o timer.o request.o vee.o
 	$(CC) $(CFLAGS) $? -o vee
 
 vee_:vee_.o error.o epoll.o
@@ -19,6 +19,9 @@ vee_.o:vee_.c
 	$(CC) $(CFLAGS) -c $?
 
 error.o:error.c
+	$(CC) $(CFLAGS) -c $?
+
+log.o:log.c
 	$(CC) $(CFLAGS) -c $?
 
 epoll.o:epoll.c
