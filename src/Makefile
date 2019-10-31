@@ -1,13 +1,14 @@
 CC = gcc -std=gnu99
 
 CFLAGS = -g -O0
+LIBS = -pthread
 
 PROGS = vee
 
 all:$(PROGS)
 
-vee:error.o log.o epoll.o priority_queue.o timer.o request.o vee.o
-	$(CC) $(CFLAGS) $? -o vee
+vee:error.o log.o epoll.o priority_queue.o timer.o request.o threadpool.o vee.o
+	$(CC) $(CFLAGS) $? -o vee $(LIBS)
 
 vee_:vee_.o error.o epoll.o
 	$(CC) $(CFLAGS) $? -o vee_
@@ -34,6 +35,9 @@ timer.o:timer.c
 	$(CC) $(CFLAGS) -c $?
 
 request.o:request.c
+	$(CC) $(CFLAGS) -c $?
+
+threadpool.o:threadpool.c
 	$(CC) $(CFLAGS) -c $?
 
 .PHONY: all clean
