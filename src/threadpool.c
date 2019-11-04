@@ -40,7 +40,10 @@ vee_tp_t *vee_tp_init(int thread_num)
 
         pool->thread_count++;
         pool->started++;
+        logger(INFO, "tid: %ld started.", pool->threads[i]);
     }
+
+    logger(INFO, "%d threads already started.", pool->started++);
 
     return pool;
 
@@ -79,6 +82,8 @@ void vee_tp_add(vee_tp_t *pool, void (*func)(void *), void *arg)
 
     pool->head->next = task;
     pool->task_count++;
+
+    logger(INFO, "new task arrived.");
 
     if (pthread_cond_signal(&(pool->cond)) != 0)
         err_msg("[vee_tp_add] cond signal error");
@@ -166,6 +171,7 @@ static void *vee_tp_worker(void *arg)
         if (pthread_mutex_unlock(&(pool->mtx)) != 0)
             err_msg("[vee_tp_worker] unlock mutex error");
 
+        logger(INFO, "starting thread worker, tid: %ld", pthread_self());
         task->func(task->arg);
         free(task);
     }

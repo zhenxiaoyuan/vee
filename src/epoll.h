@@ -7,8 +7,7 @@
 
 #include <sys/epoll.h>
 
-#define VEE_EPOLL_FLAGS 0   // TODO: set in config file later
-#define VEE_MAXEVENTS   64
+#define VEE_MAXEVENTS   64  /* move to config file */
 
 /* The ev_list that will be available for caller */
 struct epoll_event *ev_list;
@@ -16,7 +15,7 @@ struct epoll_event *ev_list;
 /*
  * Create epfd, refer to the new epoll instance
  */
-int vee_epoll_create(void);
+int vee_epoll_create(int flags);
 
 /* 
  * Register the target file descriptor `fd` on the epoll instance 

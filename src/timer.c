@@ -55,7 +55,7 @@ void vee_expire_timers(void)
     }
 }
 
-void vee_add_timer(vee_conn_t *conn, unsigned long timeout)
+void vee_add_timer(vee_request_t *r, unsigned long timeout)
 {
     vee_priority_queue_node_t *node;
     /* TODO: Palloc later */
@@ -64,7 +64,7 @@ void vee_add_timer(vee_conn_t *conn, unsigned long timeout)
 
     vee_timer_update();
     node->key = current_msec + timeout;
-    node->data = (void *)conn;
+    node->data = (void *)r;
     node->deleted = VEE_PQ_NODE_NOT_DELETED;
 
     vee_pq_insert(pq, node);

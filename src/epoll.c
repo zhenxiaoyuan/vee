@@ -4,10 +4,10 @@
 #include "error.h"
 
 int
-vee_epoll_create(void)
+vee_epoll_create(int flags)
 {
     int epfd;
-    if ((epfd = epoll_create1(VEE_EPOLL_FLAGS)) == -1)
+    if ((epfd = epoll_create1(flags)) == -1)
         err_exit("[vee_epoll_create] epoll_create1 error");
 
     ev_list = (struct epoll_event *)malloc(sizeof(struct epoll_event) * VEE_MAXEVENTS);

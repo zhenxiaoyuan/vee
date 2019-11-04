@@ -17,8 +17,7 @@
 #include <stdlib.h>     /* use for malloc */
 
 #include "error.h"
-
-#define THREAD_NUM 8
+#include "log.h"
 
 typedef struct vee_task_s {
     void (*func)(void *);
