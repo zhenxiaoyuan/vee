@@ -17,7 +17,7 @@
 1.4 implement of set_nonblock
 1.4.1 fcntl
 
-#### Thread -- todo
+#### Thread -- done
 
 3 threadpool
 3.1 init
@@ -29,7 +29,7 @@
 3.5.1 mutex
 3.5.2 cond
 
-#### Timer -- Done
+#### Timer -- done
 
 4 timer
 4.1 init

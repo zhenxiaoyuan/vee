@@ -1,37 +1,63 @@
+/*
+ * 1. Producer feed a Task to Buffer
+ *     1.1 Definition Task
+ *     1.2 Add Task to Buffer
+ * 2. Buffer store Task
+ *     2.1 Definition Buffer use Queue
+ *     2.2 Function handle new Task
+ * 3. Consumer process Task from Buffer
+ *     3.1 Definition ThreadPool
+ *     3.2 Init ThreadPool
+ *     3.3 Function take a Task to Thread
+ */
+#ifndef VEE_THREADPOOL_H
+#define VEE_THREADPOOL_H
+
 #include <pthread.h>
-#include <stdint.h>
+#include <stdlib.h>     /* use for malloc */
 
-#include "utils/error.h"
+#include "error.h"
+#include "log.h"
 
-#define THREAD_NUM 8
-
-typedef struct threadpool_task_s {
+typedef struct vee_task_s {
     void (*func)(void *);
     void *arg;
-    struct threadpool_task_s *next;
-} threadpool_task_t;
+    struct vee_task_s *next;
+} vee_task_t;
 
-typedef struct {
-    pthread_mutex_t     lock;
-    pthread_cond_t      cond;
-    pthread_t           *threads;
-    threadpool_task_t   *head;
-    int                 thread_count;
-    int                 queue_size;
-    int                 shutdown;
-    int                 started;
-} threadpool_t;
+typedef struct vee_tp_s {
+    pthread_mutex_t mtx;
+    pthread_cond_t cond;
+    pthread_t *threads;
+    int thread_count;
+    vee_task_t *head;
+    int task_count;
+    int started;
+    int shutdown;
+} vee_tp_t;
 
 typedef enum {
-    threadpool_invalid          = -1,
-    threadpool_lock_fail        = -2,
-    threadpool_already_shutdown = -3,
-    threadpool_cond_broadcast   = -4,
-    threadpool_thread_fail      = -5
-} threadpool_error_t;
+    vee_tp_invalid = -1,            // pool invalid
+    vee_tp_mtx_fail = -2,           // mutex error
+    vee_tp_cond_fail = -3,          // cond error
+    vee_tp_thread_fail = -4,        // thread error
+    vee_tp_already_shutdown = -5,
+} vee_tp_err_t;
 
-threadpool_t *threadpool_init(int thread_num);
+typedef enum {
+    immediate_shutdown = 1,
+    graceful_shutdown = 2,
+} vee_tp_shutdown_t;
 
-int threadpool_add(threadpool_t *pool, void (*func)(void *), void *arg);
+// init threadpool
+// create threads
+// create task buffer
+vee_tp_t *vee_tp_init(int thread_num);
 
-int threadpool_destroy(threadpool_t *pool, int graceful);
+// add task to buffer
+void vee_tp_add(vee_tp_t *pool, void (*func)(void *), void *arg);
+
+// distory thread
+int vee_tp_destroy(vee_tp_t *pool, int graceful);
+
+#endif  /* VEE_THREADPOOL_H */

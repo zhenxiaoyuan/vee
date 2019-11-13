@@ -3,14 +3,15 @@
 #include "request.h"
 #include "error.h"
 
-vee_conn_t *vee_conn_init(int fd, int epfd)
+vee_request_t *vee_request_init(int fd, int epfd)
 {
-    vee_conn_t *conn;
-    if ((conn = (vee_conn_t *)malloc(sizeof(vee_conn_t))) == NULL)
-        err_exit("[vee_conn_init] malloc vee_conn_t error");
+    vee_request_t *r;
+    if ((r = (vee_request_t *)malloc(sizeof(vee_request_t))) == NULL)
+        err_exit("[vee_request_init] malloc vee_request_t error");
 
-    conn->fd = fd;
-    conn->epfd = epfd;
+    r->fd = fd;
+    r->epfd = epfd;
 
-    return conn;
+    return r;
 }
+
