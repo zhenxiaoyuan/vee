@@ -1,9 +1,14 @@
 #include <errno.h>
 #include <unistd.h>
 
+/* Delete later */
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "http.h"
 #include "timer.h"
 #include "epoll.h"
+#include "rio.h"
 
 #define MAX_BUF     256     /* buffer size for read and write */
 
@@ -20,28 +25,31 @@ void do_request(void *arg)
     while (1) {
         str_len = read(r->fd, buf, MAX_BUF);
 
-        // str_len < 0 - Judge EAGAIN
-        // TODO: read tlpi/chapter4
-        if (str_len == -1) {
-            if (errno == EAGAIN) {
-                ev.events = EPOLLIN | EPOLLET | EPOLLONESHOT;
-                ev.data.ptr = (void *)r;
-                vee_epoll_mod(r->epfd, r->fd, &ev);
-                vee_add_timer(r, VEE_TIMER_TIMEOUT);
+        /* error or EAGAIN | EWOULDBLOCK */
+        if (str_len < 0) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK)
                 break;
-            }
+            else
+                goto err;
         }
-
-        // str_len == 0 - read completed - close client socket and delete in epoll
+        /* Client disconnect or end-of-file */
         else if (str_len == 0) {
-            close(r->fd);
-
-            break;
+            goto err;
         }
-
-        // str_len > 0 - write
+        /* Do request */
         else {
-            write(r->fd, buf, str_len);
+            rio_writen(r->fd, buf, str_len);
         }
     }
+
+    ev.events = EPOLLIN | EPOLLET | EPOLLONESHOT;
+    ev.data.ptr = (void *)r;
+    vee_epoll_mod(r->epfd, r->fd, &ev);
+    vee_add_timer(r, VEE_TIMER_TIMEOUT);
+
+    return;
+
+err:
+    close(r->fd);
+    free(r);
 }

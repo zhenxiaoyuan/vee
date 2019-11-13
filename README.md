@@ -48,7 +48,7 @@
 5.3 add
 5.4 del
 
-#### RIO -- todo
+#### RIO -- done
 
 6 rio
 6.1 buffered
@@ -86,5 +86,6 @@
 10. other 
 10.1 why use #ifndef XXX_H ... in the forefront of header files?
 10.2 what's close-on-exec? tlpi p1356
+10.3 signal
 
 致谢
