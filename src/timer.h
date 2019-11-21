@@ -12,6 +12,6 @@ unsigned long           current_msec;     /* Milliseconds */
 void vee_timer_init(void);
 int  vee_find_timer(void);
 void vee_expire_timers(void);
-void vee_add_timer(vee_request_t *r, unsigned long timeout);
+void vee_add_timer(vee_http_request_t *r, unsigned long timeout);
 
 #endif  /* VEE_TIMER_H */

@@ -55,7 +55,7 @@ void vee_expire_timers(void)
     }
 }
 
-void vee_add_timer(vee_request_t *r, unsigned long timeout)
+void vee_add_timer(vee_http_request_t *r, unsigned long timeout)
 {
     vee_priority_queue_node_t *node;
     /* TODO: Palloc later */

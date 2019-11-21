@@ -14,8 +14,8 @@
 
 void do_request(void *arg)
 {
-    vee_request_t *r;
-    r = (vee_request_t *)arg;
+    vee_http_request_t *r;
+    r = (vee_http_request_t *)arg;
 
     /* Move to IO operation */
     int str_len;

@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
     epfd = vee_epoll_create(VEE_EPOLL_FLAGS);
 
     /* Request */
-    vee_request_t *r = vee_request_init(listenfd, epfd);
+    vee_http_request_t *r = vee_http_request_init(listenfd, epfd);
 
     struct epoll_event ev;
     ev.events = EPOLLIN | EPOLLET;
@@ -56,12 +56,12 @@ int main(int argc, char **argv) {
         vee_expire_timers();
 
         for (int i = 0; i < ready; i++) {
-            vee_request_t *r = (vee_request_t *)ev_list[i].data.ptr;
+            vee_http_request_t *r = (vee_http_request_t *)ev_list[i].data.ptr;
 
             if (listenfd == r->fd) {
                 int clt_sock = vee_clt_sock_init(listenfd);
 
-                vee_request_t *clt_r = vee_request_init(clt_sock, epfd);
+                vee_http_request_t *clt_r = vee_http_request_init(clt_sock, epfd);
 
                 struct epoll_event ev;
                 ev.events = EPOLLIN | EPOLLET | EPOLLONESHOT;
