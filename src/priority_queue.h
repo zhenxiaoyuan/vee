@@ -1,6 +1,8 @@
 #ifndef VEE_PRIORITY_QUEUE_H
 #define VEE_PRIORITY_QUEUE_H
 
+#include "http_request.h"
+
 #define VEE_MAX_PQ_SIZE         65535
 #define VEE_PQ_NODE_DELETED     1
 #define VEE_PQ_NODE_NOT_DELETED 0
@@ -10,9 +12,10 @@
  * Priority queue node structure.
  */
 typedef struct vee_priority_queue_node_s {
-    unsigned long   key;       /* Comparable key to determine priority TODO: change char to time */
+    unsigned long   key;        /* Comparable key to determine priority */
     void            *data;      /* Data */
     unsigned short  deleted;    /* NECESSARY: 1-Yes | 0-No */
+    handler_ptr     handler;
 } vee_priority_queue_node_t;
 
 /* 
@@ -42,7 +45,7 @@ void vee_pq_insert(vee_priority_queue_t *pq, vee_priority_queue_node_t *node);
 /*
  * Delete the minimum node.
  */
-vee_priority_queue_node_t *vee_pq_del_min(vee_priority_queue_t *pq);
+void vee_pq_del_min(vee_priority_queue_t *pq);
 
 /*
  * Return the minimum node.

@@ -7,16 +7,12 @@ PROGS = vee
 
 all:$(PROGS)
 
-vee:error.o log.o epoll.o priority_queue.o timer.o request.o rio.o http.o sock.o threadpool.o vee.o
+vee:error.o log.o epoll.o priority_queue.o		\
+	timer.o http_request.o http_parse.o rio.o	\
+	http.o sock.o threadpool.o vee.o
 	$(CC) $(CFLAGS) $? -o vee $(LIBS)
 
-vee_:vee_.o error.o epoll.o
-	$(CC) $(CFLAGS) $? -o vee_
-
 vee.o:vee.c
-	$(CC) $(CFLAGS) -c $?
-
-vee_.o:vee_.c
 	$(CC) $(CFLAGS) -c $?
 
 error.o:error.c
@@ -37,8 +33,14 @@ timer.o:timer.c
 rio.o:rio.c
 	$(CC) $(CFLAGS) -c $?
 
-request.o:request.c
+http_request.o:http_request.c
 	$(CC) $(CFLAGS) -c $?
+
+http_parse.o:http_parse.c
+	$(CC) $(CFLAGS) -c $?
+
+# list.o:list.c
+# 	$(CC) $(CFLAGS) -c $?
 
 http.o:http.c
 	$(CC) $(CFLAGS) -c $?

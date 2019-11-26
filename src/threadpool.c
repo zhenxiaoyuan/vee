@@ -70,6 +70,8 @@ void vee_tp_add(vee_tp_t *pool, void (*func)(void *), void *arg)
         goto out;
     }
 
+    //logger(INFO, "new task arrived.");
+
     vee_task_t *task;
     if ((task = (vee_task_t *)malloc(sizeof(vee_task_t))) == NULL) {
         err_msg("[vee_tp_add] malloc task error");
@@ -82,8 +84,6 @@ void vee_tp_add(vee_tp_t *pool, void (*func)(void *), void *arg)
 
     pool->head->next = task;
     pool->task_count++;
-
-    logger(INFO, "new task arrived.");
 
     if (pthread_cond_signal(&(pool->cond)) != 0)
         err_msg("[vee_tp_add] cond signal error");

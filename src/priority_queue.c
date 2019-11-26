@@ -49,7 +49,7 @@ void vee_pq_insert(vee_priority_queue_t *pq, vee_priority_queue_node_t *node)
     pq->nodes[i] = node;
 }
 
-vee_priority_queue_node_t *vee_pq_del_min(vee_priority_queue_t *pq)
+void vee_pq_del_min(vee_priority_queue_t *pq)
 {
     int i, child;
     vee_priority_queue_node_t *min, *last;
@@ -75,7 +75,9 @@ vee_priority_queue_node_t *vee_pq_del_min(vee_priority_queue_t *pq)
 
     /* TODO: Close connection while node deleted */
 
-    return min;
+    free(min);
+
+    return;
 }
 
 vee_priority_queue_node_t *vee_pq_min(vee_priority_queue_t *pq)

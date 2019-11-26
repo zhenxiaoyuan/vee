@@ -45,17 +45,19 @@ void vee_expire_timers(void)
         if ((node->key - current_msec) > 0)
             return;
 
-        /* Is node->deleted necessary if close fd while delete the minimum node? */
         if (node->deleted == VEE_PQ_NODE_DELETED) {
             vee_pq_del_min(pq);
             continue;
         }
 
+        /* Time out */
+        node->handler((vee_http_request_t *)(node->data));
+
         vee_pq_del_min(pq);
     }
 }
 
-void vee_add_timer(vee_http_request_t *r, unsigned long timeout)
+void vee_add_timer(vee_http_request_t *r, unsigned long timeout, handler_ptr handler)
 {
     vee_priority_queue_node_t *node;
     /* TODO: Palloc later */
@@ -66,6 +68,17 @@ void vee_add_timer(vee_http_request_t *r, unsigned long timeout)
     node->key = current_msec + timeout;
     node->data = (void *)r;
     node->deleted = VEE_PQ_NODE_NOT_DELETED;
+    node->handler = handler;
 
     vee_pq_insert(pq, node);
+
+    r->timer = (void *)node;
+}
+
+void vee_timer_del(vee_http_request_t *r)
+{
+    vee_timer_update();
+    vee_priority_queue_node_t *node = (vee_priority_queue_node_t *)(r->timer);
+
+    node->deleted = VEE_PQ_NODE_DELETED;
 }

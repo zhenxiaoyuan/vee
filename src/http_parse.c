@@ -1,10 +1,6 @@
-//
-// Latest edit by TeeKee on 2017/7/23.
-//
+#include "http_parse.h"
 
-#include "http.h"
-
-int tk_http_parse_request_line(tk_http_request_t *request){
+int vee_http_parse_request_line(vee_http_request_t *request){
     enum{
         sw_start = 0,
         sw_method,
@@ -36,7 +32,7 @@ int tk_http_parse_request_line(tk_http_request_t *request){
                 if(ch == CR || ch == LF)
                     break;
                 if((ch < 'A' || ch > 'Z') && ch != '_')
-                    return TK_HTTP_PARSE_INVALID_METHOD;
+                    return VEE_HTTP_PARSE_INVALID_METHOD;
                 state = sw_method;
                 break;
 
@@ -46,23 +42,23 @@ int tk_http_parse_request_line(tk_http_request_t *request){
                     m = request->request_start;
                     switch(p - m){
                         case 3:
-                            if(tk_str3_cmp(m, 'G', 'E', 'T', ' ')){
-                                request->method = TK_HTTP_GET;
+                            if(vee_str3_cmp(m, 'G', 'E', 'T', ' ')){
+                                request->method = VEE_HTTP_GET;
                                 break;
                             }
                             break;
                         case 4:
-                            if(tk_str3Ocmp(m, 'P', 'O', 'S', 'T')){
-                                request->method = TK_HTTP_POST;
+                            if(vee_str3Ocmp(m, 'P', 'O', 'S', 'T')){
+                                request->method = VEE_HTTP_POST;
                                 break;
                             }
-                            if(tk_str4cmp(m, 'H', 'E', 'A', 'D')){
-                                request->method = TK_HTTP_HEAD;
+                            if(vee_str4cmp(m, 'H', 'E', 'A', 'D')){
+                                request->method = VEE_HTTP_HEAD;
                                 break;
                             }
                             break;
                         default:
-                            request->method = TK_HTTP_UNKNOWN;
+                            request->method = VEE_HTTP_UNKNOWN;
                             break;
                     }
                     state = sw_spaces_before_uri;
@@ -70,7 +66,7 @@ int tk_http_parse_request_line(tk_http_request_t *request){
                 }
 
                 if((ch < 'A' || ch > 'Z') && ch != '_')
-                    return TK_HTTP_PARSE_INVALID_METHOD;
+                    return VEE_HTTP_PARSE_INVALID_METHOD;
                 break;
 
             case sw_spaces_before_uri:
@@ -83,7 +79,7 @@ int tk_http_parse_request_line(tk_http_request_t *request){
                     case ' ':
                         break;
                     default:
-                        return TK_HTTP_PARSE_INVALID_REQUEST;
+                        return VEE_HTTP_PARSE_INVALID_REQUEST;
                 }
                 break;
 
@@ -106,7 +102,7 @@ int tk_http_parse_request_line(tk_http_request_t *request){
                         state = sw_http_H;
                         break;
                     default:
-                        return TK_HTTP_PARSE_INVALID_REQUEST;
+                        return VEE_HTTP_PARSE_INVALID_REQUEST;
                 }
                 break;
 
@@ -116,7 +112,7 @@ int tk_http_parse_request_line(tk_http_request_t *request){
                         state = sw_http_HT;
                         break;
                     default:
-                        return TK_HTTP_PARSE_INVALID_REQUEST;
+                        return VEE_HTTP_PARSE_INVALID_REQUEST;
                 }
                 break;
 
@@ -126,7 +122,7 @@ int tk_http_parse_request_line(tk_http_request_t *request){
                         state = sw_http_HTT;
                         break;
                     default:
-                        return TK_HTTP_PARSE_INVALID_REQUEST;
+                        return VEE_HTTP_PARSE_INVALID_REQUEST;
                 }
                 break;
 
@@ -136,7 +132,7 @@ int tk_http_parse_request_line(tk_http_request_t *request){
                         state = sw_http_HTTP;
                         break;
                     default:
-                        return TK_HTTP_PARSE_INVALID_REQUEST;
+                        return VEE_HTTP_PARSE_INVALID_REQUEST;
                 }
                 break;
 
@@ -146,13 +142,13 @@ int tk_http_parse_request_line(tk_http_request_t *request){
                         state = sw_first_major_digit;
                         break;
                     default:
-                        return TK_HTTP_PARSE_INVALID_REQUEST;
+                        return VEE_HTTP_PARSE_INVALID_REQUEST;
                 }
                 break;
 
             case sw_first_major_digit:
                 if(ch < '1' || ch > '9')
-                    return TK_HTTP_PARSE_INVALID_REQUEST;
+                    return VEE_HTTP_PARSE_INVALID_REQUEST;
                 request->http_major = ch - '0';
                 state = sw_major_digit;
                 break;
@@ -163,13 +159,13 @@ int tk_http_parse_request_line(tk_http_request_t *request){
                     break;
                 }
                 if(ch < '0' || ch > '9')
-                    return TK_HTTP_PARSE_INVALID_REQUEST;
+                    return VEE_HTTP_PARSE_INVALID_REQUEST;
                 request->http_major = request->http_major * 10 + ch - '0';
                 break;
 
             case sw_first_minor_digit:
                 if(ch < '0' || ch > '9')
-                    return TK_HTTP_PARSE_INVALID_REQUEST;
+                    return VEE_HTTP_PARSE_INVALID_REQUEST;
                 request->http_minor = ch - '0';
                 state = sw_minor_digit;
                 break;
@@ -186,7 +182,7 @@ int tk_http_parse_request_line(tk_http_request_t *request){
                     break;
                 }
                 if(ch < '0' || ch > '9')
-                    return TK_HTTP_PARSE_INVALID_REQUEST;
+                    return VEE_HTTP_PARSE_INVALID_REQUEST;
                 request->http_minor = request->http_minor * 10 + ch - '0';
                 break;
 
@@ -200,7 +196,7 @@ int tk_http_parse_request_line(tk_http_request_t *request){
                     case LF:
                         goto done;
                     default:
-                        return TK_HTTP_PARSE_INVALID_REQUEST;
+                        return VEE_HTTP_PARSE_INVALID_REQUEST;
                 }
                 break;
 
@@ -210,13 +206,13 @@ int tk_http_parse_request_line(tk_http_request_t *request){
                     case LF:
                         goto done;
                     default:
-                        return TK_HTTP_PARSE_INVALID_REQUEST;
+                        return VEE_HTTP_PARSE_INVALID_REQUEST;
                 }
         }
     }
     request->pos = pi;
     request->state = state;
-    return TK_AGAIN;
+    return VEE_AGAIN;
 
     done:
     request->pos = pi + 1;
@@ -226,7 +222,7 @@ int tk_http_parse_request_line(tk_http_request_t *request){
     return 0;
 }
 
-int tk_http_parse_request_body(tk_http_request_t *request){
+int vee_http_parse_request_body(vee_http_request_t *request){
     // 状态列表
     enum{
         sw_start = 0,
@@ -242,7 +238,7 @@ int tk_http_parse_request_body(tk_http_request_t *request){
 
     size_t pi;
     unsigned char ch, *p;
-    tk_http_header_t *hd;
+    vee_http_header_t *hd;
     for (pi = request->pos; pi < request->last; pi++) {
         p = (unsigned char*)&request->buff[pi % MAX_BUF];
         ch = *p;
@@ -276,7 +272,7 @@ int tk_http_parse_request_body(tk_http_request_t *request){
                     break;
                 }
                 else
-                    return TK_HTTP_PARSE_INVALID_HEADER;
+                    return VEE_HTTP_PARSE_INVALID_HEADER;
 
             case sw_spaces_after_colon:
                 if (ch == ' ')
@@ -299,7 +295,7 @@ int tk_http_parse_request_body(tk_http_request_t *request){
             case sw_cr:
                 if(ch == LF){
                     state = sw_crlf;
-                    hd = (tk_http_header_t *) malloc(sizeof(tk_http_header_t));
+                    hd = (vee_http_header_t *) malloc(sizeof(vee_http_header_t));
                     hd->key_start = request->cur_header_key_start;
                     hd->key_end = request->cur_header_key_end;
                     hd->value_start = request->cur_header_value_start;
@@ -308,7 +304,7 @@ int tk_http_parse_request_body(tk_http_request_t *request){
                     break;
                 }
                 else
-                    return TK_HTTP_PARSE_INVALID_HEADER;
+                    return VEE_HTTP_PARSE_INVALID_HEADER;
 
             case sw_crlf:
                 if(ch == CR)
@@ -324,13 +320,13 @@ int tk_http_parse_request_body(tk_http_request_t *request){
                     case LF:
                         goto done;
                     default:
-                        return TK_HTTP_PARSE_INVALID_HEADER;
+                        return VEE_HTTP_PARSE_INVALID_HEADER;
                 }
         }
     }
     request->pos = pi;
     request->state = state;
-    return TK_AGAIN;
+    return VEE_AGAIN;
 
     done:
     request->pos = pi + 1;
