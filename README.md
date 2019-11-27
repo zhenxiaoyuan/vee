@@ -1,5 +1,17 @@
 # Vee
 Vee is a HTTP WebServer based on multithreading, under continuous improvement...
+```
+-------------------------------------------------------------------------------
+Language                     files          blank        comment           code
+-------------------------------------------------------------------------------
+C                               15            347            123           1375
+Markdown                         7             80              0            334
+C/C++ Header                    14            120            141            307
+make                             2             25              2             47
+-------------------------------------------------------------------------------
+SUM:                            38            572            266           2063
+-------------------------------------------------------------------------------
+```
 
 ## Usage
 ### Build
@@ -32,6 +44,7 @@ make
 - [ ] Makefile, maybe cmake later
 - [ ] Unit test
 - [ ] Benchmark
+- [ ] Graphviz ang Codeviz
 - [ ] HTTP features
 
 ## Test
