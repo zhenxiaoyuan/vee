@@ -35,7 +35,7 @@ make
 - Error handler
 
 ## Todo
-- [ ] Port reuse
+- [x] Port reuse
 - [ ] Config file
 - [ ] Signal to close system
 - [ ] Memory pool
