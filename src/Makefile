@@ -9,7 +9,7 @@ all:$(PROGS)
 
 vee:error.o log.o epoll.o priority_queue.o		\
 	timer.o http_request.o http_parse.o rio.o	\
-	http.o sock.o threadpool.o vee.o
+	http.o sock.o threadpool.o util.o vee.o
 	$(CC) $(CFLAGS) $? -o vee $(LIBS)
 
 vee.o:vee.c
@@ -39,8 +39,8 @@ http_request.o:http_request.c
 http_parse.o:http_parse.c
 	$(CC) $(CFLAGS) -c $?
 
-# list.o:list.c
-# 	$(CC) $(CFLAGS) -c $?
+util.o:util.c
+	$(CC) $(CFLAGS) -c $?
 
 http.o:http.c
 	$(CC) $(CFLAGS) -c $?

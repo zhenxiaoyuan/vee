@@ -7,8 +7,6 @@
 #include "rio.h"
 #include "log.h"
 
-//#define MAX_BUF     256     /* buffer size for read and write */
-
 static const char* get_file_type(const char *type);
 static void parse_uri(char *uri, int length, char *filename, char *query);
 static void do_error(int fd, char *cause, char *err_num, char *short_msg, char *long_msg);
@@ -192,12 +190,9 @@ void do_request(void *arg)
     while (1) {
         str_len = read(r->fd, r->buff, MAX_BUF);
 
-        logger(DEBUG, "read: %s", buf);
-
         /* error or EAGAIN | EWOULDBLOCK */
         if (str_len < 0) {
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                logger(DEBUG, "EAGAIN");
                 break;
             }
             else

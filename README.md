@@ -22,7 +22,7 @@ make
 ```
 ### Run
 ```bash
-./vee     # Default port: 7777
+./vee               # default port - 7777
 ```
 
 ## Features
@@ -36,11 +36,12 @@ make
 
 ## Todo
 - [x] Port reuse
-- [ ] Config file
-- [ ] Signal to close system
+- [x] Config file
+- [ ] Handle SIGPIPE
 - [ ] Memory pool
 - [ ] Memory mapping
 - [ ] Error handler and logger station
+- [ ] Domain logger
 - [ ] Makefile, maybe cmake later
 - [ ] Unit test
 - [ ] Benchmark

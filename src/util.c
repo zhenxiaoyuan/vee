@@ -1,100 +1,46 @@
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <fcntl.h>
 #include <stdio.h>
-#include <strings.h>
-#include <unistd.h>
 #include <stdlib.h>
+#include <string.h>
+
 #include "util.h"
-#include "dbg.h"
+#include "error.h"
 
-int open_listenfd(int port) {
-    if (port <= 0) {
-        port = 3000;
-    }
-
-    int listenfd, optval = 1;
-    struct sockaddr_in serveraddr;
-
-    if ((listenfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-        return -1;
-
-    if (setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, 
-                (const void *)&optval, sizeof(int)) < 0)
-        return -1;
-
-    bzero((char *)&serveraddr, sizeof(serveraddr));
-    serveraddr.sin_family = AF_INET;
-    serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    serveraddr.sin_port = htons((unsigned short)port);
-
-    if (bind(listenfd, (struct sockaddr *)&serveraddr, sizeof(serveraddr)) < 0)
-        return -1;
-
-    if (listen(listenfd, LISTENQ) < 0)
-        return -1;
-
-    return listenfd;
-}
-
-int make_socket_non_blocking(int fd) {
-    int flags, s;
-    flags = fcntl(fd, F_GETFL, 0);
-    if (flags == -1) {
-        log_err("fcntl");
-        return -1;
-    }
-
-    flags |= O_NONBLOCK;
-    s = fcntl(fd, F_SETFL, flags);
-    if (s == -1) {
-        log_err("fcntl");
-        return -1;
-    }
-
-    return 0;
-}
-
-int read_conf(char *filename, vee_conf_t *cf, char *buf, int len) {
+vee_conf_t *vee_read_conf(char *filename)
+{
     FILE *fp = fopen(filename, "r");
-    if (!fp) {
-        log_err("cannot open config file: %s", filename);
-        return VEE_CONF_ERROR;
-    }
+    if (!fp)
+        err_exit("[vee_read_conf] open file error.");
 
-    int pos = 0;
-    char *delim_pos;
-    int line_len;
-    char *cur_pos = buf + pos;
+    vee_conf_t *conf = (vee_conf_t *)malloc(sizeof(vee_conf_t));
+    if (!conf)
+        err_exit("[vee_read_conf] malloc vee_conf_t error.");
 
-    while (fgets(cur_pos, len-pos, fp)) {
-        delim_pos = strstr(cur_pos, DELIM);
-        line_len = strlen(cur_pos);
+    char buf[BUF_LEN];
+    char *cur_pos, *delim_pos;
+    int line_no = 0;
 
-        if (!delim_pos)
-            return VEE_CONF_ERROR;
+    while (fgets(buf, BUF_LEN, fp)) {
+        delim_pos = strstr(buf, DELIM);
+        if (!delim_pos++)
+            err_exit("[vee_read_conf] format error of line %d.", line_no);
 
-        if (cur_pos[strlen(cur_pos) - 1] == '\n') {
-            cur_pos[strlen(cur_pos) - 1] = '\0';
+        if (strncmp("root", buf, 4) == 0) {
+            int i = 0;
+            while (*delim_pos != '\n') {
+                conf->root[i++] = *delim_pos++;
+            }
         }
 
-        if (strncmp("root", cur_pos, 4) == 0) {
-            cf->root = delim_pos + 1;
-        }
+        if (strncmp("port", buf, 4) == 0)
+            conf->port = atoi(delim_pos);
 
-        if (strncmp("port", cur_pos, 4) == 0) {
-            cf->port = atoi(delim_pos + 1);
-        }
+        if (strncmp("thread_num", buf, 10) == 0)
+            conf->thread_num = atoi(delim_pos);
 
-        if (strncmp("threadnum", cur_pos, 9) == 0) {
-            cf->thread_num = atoi(delim_pos + 1);
-        }
-
-        cur_pos += line_len;
+        line_no++;
     }
 
     fclose(fp);
-    return VEE_CONF_OK;
+
+    return conf;
 }
