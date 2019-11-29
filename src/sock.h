@@ -3,10 +3,9 @@
 
 #include <strings.h>
 
-#define PORT_NUM 7777   // read in cfg file later
 #define LISTENQ  8
 
-int vee_listenfd_init(void);
+int vee_listenfd_init(int port);
 int vee_clt_sock_init(int listenfd);
 
 #endif  /* VEE_SOCK_H */

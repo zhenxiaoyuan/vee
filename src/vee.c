@@ -14,10 +14,9 @@
 #include "http_request.h"
 #include "sock.h"
 
-// TODO: init in config file later
 // #define MAX_BUF     256     /* buffer size for read and write */
 #define THREAD_NUM 8
-#define VEE_EPOLL_FLAGS 0   // TODO: set in config file later
+#define PORT_NUM 7777       // read in cfg file later
 
 /* defined at epoll.h */
 extern struct epoll_event *ev_list;
@@ -26,11 +25,11 @@ int main(int argc, char **argv) {
     // TODO: read_cfg_file
 
     /* Sock */
-    int listenfd = vee_listenfd_init();
+    int listenfd = vee_listenfd_init(PORT_NUM);
 
     /* Epoll */
     int epfd, timer;
-    epfd = vee_epoll_create(VEE_EPOLL_FLAGS);
+    epfd = vee_epoll_create(0);
 
     /* Request */
     vee_http_request_t *r = vee_http_request_init(listenfd, epfd, "./");

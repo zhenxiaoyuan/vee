@@ -8,17 +8,22 @@
 
 static void make_sock_non_block(int sock);
 
-int vee_listenfd_init(void)
+int vee_listenfd_init(int port)
 {
-    int listenfd;
-    struct sockaddr_in svr_addr;
+    port = ((port >= 65535) || (port <= 1024)) ? 7777 : port;
 
-    // TODO: add socket reuse
-    listenfd = socket(AF_INET, SOCK_STREAM, 0);
+    int listenfd = socket(AF_INET, SOCK_STREAM, 0);
+
+    /* Solve the "Address already in use" problem */
+    int optval = 1;
+    if (setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) == -1)
+        err_exit("[vee_listenfd_init] setsocket error");
+
+    struct sockaddr_in svr_addr;
     bzero(&svr_addr, sizeof(svr_addr));
     svr_addr.sin_family      = AF_INET;
     svr_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    svr_addr.sin_port        = htons(PORT_NUM);
+    svr_addr.sin_port        = htons((unsigned short)port);
 
     if (bind(listenfd, (struct sockaddr *) &svr_addr, sizeof(svr_addr)) == -1)
         err_exit("[vee_listenfd_init] bind error");
