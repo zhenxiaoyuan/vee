@@ -8,6 +8,7 @@ typedef struct vee_conf_s {
     char    root[BUF_LEN];
     int     port;
     int     thread_num;
+    int     backlog;
 } vee_conf_t;
 
 vee_conf_t *vee_read_conf(char *filename);

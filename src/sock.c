@@ -1,6 +1,7 @@
 #include <sys/socket.h>     /* used for socket */
 #include <netinet/in.h>     /* used for struct sockaddr_in */
 #include <fcntl.h>          /* used for nonblock */
+#include <string.h>         /* used for bzero */
 
 #include "sock.h"
 #include "error.h"
@@ -8,7 +9,7 @@
 
 static void make_sock_non_block(int sock);
 
-int vee_listenfd_init(int port)
+int vee_listenfd_init(int port, int backlog)
 {
     port = ((port >= 65535) || (port <= 1024)) ? 7777 : port;
 
@@ -28,7 +29,7 @@ int vee_listenfd_init(int port)
     if (bind(listenfd, (struct sockaddr *) &svr_addr, sizeof(svr_addr)) == -1)
         err_exit("[vee_listenfd_init] bind error");
 
-    if (listen(listenfd, LISTENQ) == -1)
+    if (listen(listenfd, backlog) == -1)
         err_exit("[vee_listenfd_init] listen error");
 
     logger(INFO, "Start listening...");

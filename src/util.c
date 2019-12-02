@@ -37,6 +37,9 @@ vee_conf_t *vee_read_conf(char *filename)
         if (strncmp("thread_num", buf, 10) == 0)
             conf->thread_num = atoi(delim_pos);
 
+        if (strncmp("backlog", buf, 7) == 0)
+            conf->backlog = atoi(delim_pos);
+
         line_no++;
     }
 

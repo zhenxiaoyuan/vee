@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
     vee_conf_t *conf = vee_read_conf(CONF_NAME);
 
     /* Sock */
-    int listenfd = vee_listenfd_init(conf->port);
+    int listenfd = vee_listenfd_init(conf->port, conf->backlog);
 
     /* Epoll */
     int epfd, timer;
