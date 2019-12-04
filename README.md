@@ -33,6 +33,7 @@ make
 - HTTP
 - Logger
 - Error handler
+- Support IPv4/IPv6
 
 ## Todo
 - [x] Port reuse
