@@ -42,7 +42,7 @@ make
 - [ ] Memory pool
 - [ ] Memory mapping
 - [ ] Error handler and logger station
-- [ ] Domain logger
+- [ ] Daemon system and logger
 - [ ] Makefile, maybe cmake later
 - [ ] Unit test
 - [ ] Benchmark
